@@ -89,7 +89,7 @@ adb shell
 
 ### Sideload apps
 
-Now you can sideload app by [appscmd](https://github.com/gogogoghost/appscmd) cli via adb. The way by apps will come soon.
+Now you can sideload apps by [appscmd](https://github.com/gogogoghost/appscmd) cli via adb. The way by apps will come soon.
 
 ```bash
 adb shell
