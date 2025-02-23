@@ -1,0 +1,20 @@
+name: Release
+run-name: Create release by ${{ github.actor }}
+on:
+  push:
+    tags:
+      - '20*'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - run: sudo bash build.sh
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "output/*.xz"

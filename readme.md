@@ -4,7 +4,7 @@ This tutorial can lead you to jailbreak your nokia 2780 flip. Include sideload a
 
 ### Flash recovery (Once)
 
-Download all images from [here](). These recompiled image are from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/).
+Download all images from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox). These precompiled images are from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/).
 
 Reboot the device and press volume down while booting to enter fastboot.
 
@@ -35,7 +35,7 @@ Select "USB storage" then "Whole eMMC". Your PC can access the whole emmc now.
 
 ### Flash kernel (Once)
 
-Donwload boot.img from [here]() then flash it.
+Donwload boot.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files) then flash it.
 
 Patched boot partition has been replaced the kernel cmdline from **androidboot.selinux=enforcing** to **androidboot.selinux=permissive**
 
@@ -68,10 +68,21 @@ sudo mkfs.f2fs /dev/sda54 -f
 
 ### Flash system
 
-Download system.img from [here]() then flash it.
+Download system.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest) then flash it.
 
 ```bash
 sudo dd if=system.img of=/dev/sda16
 ```
 
 Reboot the device when finished.
+
+### Enable adb
+
+Enable "Settings -> Storage -> USB storage". Then your PC can discovery a adb device.
+
+Using the adb key to connect to it.
+
+```bash
+export export ADB_VENDOR_KEYS=$(YOUR_ADBKEY_PATH)
+adb shell
+```
