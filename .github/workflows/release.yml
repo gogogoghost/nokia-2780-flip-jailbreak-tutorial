@@ -15,6 +15,11 @@ jobs:
 
       - run: sudo bash build.sh
 
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: output
+      #     path: output
+
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "output/*.xz"

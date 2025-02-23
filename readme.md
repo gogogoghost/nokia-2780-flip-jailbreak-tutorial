@@ -80,9 +80,26 @@ Reboot the device when finished.
 
 Enable "Settings -> Storage -> USB storage". Then your PC can discovery a adb device.
 
-Using the adb key to connect to it.
+Use the adb key to connect to it.
 
 ```bash
 export export ADB_VENDOR_KEYS=$(YOUR_ADBKEY_PATH)
 adb shell
+```
+
+### Sideload apps
+
+Now you can sideload app by appscmd cli via adb. The way by apps will come soon.
+
+```bash
+adb shell
+
+# install a app
+appscmd install /data/local/tmp/application.zip
+
+# install a pwa
+appscmd install-pwa https://xxx.com/manifest.webmanifest
+
+# list apps
+appscmd list
 ```

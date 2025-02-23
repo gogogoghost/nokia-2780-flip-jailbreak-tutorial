@@ -12,8 +12,11 @@ wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/
 echo "Download init..."
 wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/patched-files/init -O init
 
-echo "Download su"
+echo "Download su..."
 wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/su/su -O su
+
+echo "Download appscmd..."
+wget https://github.com/gogogoghost/appscmd/releases/download/0.0.1/appscmd -O appscmd
 
 echo "Decompress..."
 xz -d emmc.img.xz
@@ -24,6 +27,8 @@ losetup -P $loDev emmc.img
 
 mkdir sys
 mount ${loDev}p16 sys
+
+echo "Copy files..."
 
 # copy init
 cp init sys/system/bin/init
@@ -36,15 +41,19 @@ cp su sys/system/xbin/
 chmod +x sys/system/xbin/su
 cp files/init.sud.rc sys/system/etc/init/
 
+# copy appscmd
+cp appscmd sys/system/xbin/
+chmod +x sys/system/xbin/appscmd
+
 echo "Umount system..."
 umount sys
 
-echo "Dump system..."
+echo "Dump system partition..."
 dd if=${loDev}p16 of=$output/system.img
-
-# compress
-echo "Compress system..."
-xz $output/system.img
 
 echo "Clean..."
 losetup -d $loDev
+
+# compress
+echo "Compress image..."
+xz $output/system.img
