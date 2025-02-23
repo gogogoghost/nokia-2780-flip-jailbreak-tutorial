@@ -6,8 +6,8 @@ output="output"
 mkdir $output
 
 echo "Download emmc image..."
-# wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/emmc/emmc.img.xz -O emmc.img.xz
-wget http://127.0.0.1:8000/emmc.img.xz -O emmc.img.xz
+wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/emmc/emmc.img.xz -O emmc.img.xz
+# wget http://127.0.0.1:8000/emmc.img.xz -O emmc.img.xz
 
 echo "Download init..."
 wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/patched-files/init -O init
