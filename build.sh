@@ -16,7 +16,10 @@ echo "Download su..."
 wget https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/su/su -O su
 
 echo "Download appscmd..."
-wget https://github.com/gogogoghost/appscmd/releases/download/0.0.1/appscmd -O appscmd
+wget https://github.com/gogogoghost/appscmd/releases/download/0.1.0/appscmd -O appscmd
+
+echo "Download ostore..."
+wget https://github.com/gogogoghost/ostore/releases/download/1.0.2/ostore.zip -O ostore.zip
 
 echo "Decompress..."
 xz -d emmc.img.xz
@@ -44,6 +47,12 @@ cp files/init.sud.rc sys/system/etc/init/
 # copy appscmd
 cp appscmd sys/system/xbin/
 chmod +x sys/system/xbin/appscmd
+cp files/init.appscmd.rc sys/system/etc/init/
+
+# install ostore
+mkdir -p sys/system/b2g/webapps/ostore
+cp ostore.zip sys/system/b2g/webapps/ostore/application.zip
+jq '. += [{"install_time": 1663931969102, "manifest_url": "http://ostore.localhost/manifest.webmanifest","removable": true,"name": "ostore"}]' sys/system/b2g/webapps/webapps.json > temp.json && mv temp.json sys/system/b2g/webapps/webapps.json
 
 echo "Umount system..."
 umount sys

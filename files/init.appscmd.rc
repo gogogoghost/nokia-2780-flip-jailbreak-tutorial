@@ -1,0 +1,8 @@
+# appscmd daemon
+service appscmd /system/xbin/appscmd daemon
+    group root
+    seclabel u:r:su:s0
+    user root
+
+on post-fs-data
+    start appscmd
