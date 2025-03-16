@@ -2,6 +2,15 @@
 
 This tutorial can lead you to jailbreak your nokia 2780 flip. Include sideload apps and root.
 
+### Screenshot
+
+Image from this repository contains [ostore](https://github.com/gogogoghost/ostore) to sideload apps. If you uninstalled it. You can do factory reset (format data) or using [appscmd](#Sideload apps) to reinstall.
+
+![1](imgs/ostore_1.png)
+![2](imgs/ostore_2.png)
+![3](imgs/ostore_3.png)
+![4](imgs/ostore_4.png)
+
 ### Flash recovery (Once)
 
 Download all images from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox). These precompiled images are from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/).
@@ -54,7 +63,6 @@ sudo mount /dev/adb54 userdata
 
 # copy adbkey
 sudo cp adbkey.pub userdata/misc/adb/adb_keys
-sudo setfattr -n security.selinux -v u:object_r:system_data_file:s0 userdata/misc/adb/adb_keys
 
 # umount userdata
 sudo umount userdata
@@ -89,7 +97,7 @@ adb shell
 
 ### Sideload apps
 
-Now you can sideload apps by [appscmd](https://github.com/gogogoghost/appscmd) cli via adb. The way by apps will come soon.
+Now you can sideload apps by [appscmd](https://github.com/gogogoghost/appscmd) cli via adb.
 
 ```bash
 adb shell
