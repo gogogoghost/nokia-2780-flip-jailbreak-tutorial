@@ -26,30 +26,14 @@ fastboot flash vbmeta vbmeta.img
 fastboot flash recovery lk2nd.img
 ```
 
-### Enter recovery
-
-Reboot device and press volume up while booting. You will see the warning screen. Press power key twice can skip it. Or you need to wait for some seconds.
-
-After the warning screen disappear. Press volume up again until the device enter weeknd toolbox.
-
-#### Disable encryption
-
-This operation will erase all user data.
-
-Select "Disable encryption" and follow the on-screen instructions.
-
-#### Mount whole emmc
-
-Select "USB storage" then "Whole eMMC". Your PC can access the whole emmc now.
-
-### Flash kernel
+### Flash boot
 
 Donwload boot.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files) then flash it.
 
 Patched boot partition has been replaced the kernel cmdline from **androidboot.selinux=enforcing** to **androidboot.selinux=permissive**
 
 ```bash
-sudo dd if=boot.img of=/dev/sda13
+fasboot flash boot boot.img
 ```
 
 ### Flash system
@@ -57,12 +41,20 @@ sudo dd if=boot.img of=/dev/sda13
 Download system.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest) then flash it.
 
 ```bash
-sudo dd if=system.img of=/dev/sda16
+fastboot flash system system.img
 ```
 
-Reboot the device when finished.
+### Format data
 
-Each future update only requires flashing system partition.
+```bash
+fastboot format userdata
+```
+
+### How to enter recovery
+
+Reboot device and press volume up while booting. You will see the warning screen. Press power key twice can skip it. Or you need to wait for some seconds.
+
+After the warning screen disappear. Press volume up again until the device enter weeknd toolbox.
 
 ### Adb
 
