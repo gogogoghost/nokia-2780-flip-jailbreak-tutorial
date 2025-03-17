@@ -67,9 +67,9 @@ Or you can replace the key by yourself.
 
 System will restore the adb key if **/data/misc/adb/adb_keys** not exist during boot.
 
-### Sideload apps
+### Sideload apps via cli
 
-Now you can sideload apps by [appscmd](https://github.com/gogogoghost/appscmd) cli via adb.
+Image contains [appscmd](https://github.com/gogogoghost/appscmd) to sideload apps.
 
 ```bash
 adb shell
