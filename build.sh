@@ -19,7 +19,7 @@ echo "Download appscmd..."
 wget https://github.com/gogogoghost/appscmd/releases/download/0.1.0/appscmd -O appscmd
 
 echo "Download ostore..."
-wget https://github.com/gogogoghost/ostore/releases/download/1.0.2/ostore.zip -O ostore.zip
+wget https://github.com/gogogoghost/ostore/releases/download/1.0.4/ostore_1.0.4.zip -O ostore.zip
 
 echo "Decompress..."
 xz -d emmc.img.xz
