@@ -28,34 +28,41 @@ loDev=$(losetup -f)
 echo "Losetup $loDev..."
 losetup -P $loDev emmc.img
 
-mkdir sys
-mount ${loDev}p16 sys
+mkdir root
+mount ${loDev}p16 root
 
 echo "Copy files..."
 
 # copy init
-cp init sys/system/bin/init
+cp init root/system/bin/init
 
 # overwrite init.usb.configfs.rc
-cp files/init.usb.configfs.rc sys/
+cp files/init.usb.configfs.rc root/
 
 # copy su
-cp su sys/system/xbin/
-chmod +x sys/system/xbin/su
-cp files/init.sud.rc sys/system/etc/init/
+cp su root/system/xbin/
+chmod +x root/system/xbin/su
+cp files/init.sud.rc root/system/etc/init/
 
 # copy appscmd
-cp appscmd sys/system/xbin/
-chmod +x sys/system/xbin/appscmd
-cp files/init.appscmd.rc sys/system/etc/init/
+cp appscmd root/system/xbin/
+chmod +x root/system/xbin/appscmd
+cp files/init.appscmd.rc root/system/etc/init/
 
 # install ostore
-mkdir -p sys/system/b2g/webapps/ostore
-cp ostore.zip sys/system/b2g/webapps/ostore/application.zip
-jq '. += [{"install_time": 1663931969102, "manifest_url": "http://ostore.localhost/manifest.webmanifest","removable": true,"name": "ostore"}]' sys/system/b2g/webapps/webapps.json > temp.json && mv temp.json sys/system/b2g/webapps/webapps.json
+mkdir -p root/system/b2g/webapps/ostore
+cp ostore.zip root/system/b2g/webapps/ostore/application.zip
+jq '. += [{"install_time": 1663931969102, "manifest_url": "http://ostore.localhost/manifest.webmanifest","removable": true,"name": "ostore"}]' root/system/b2g/webapps/webapps.json > temp.json && mv temp.json root/system/b2g/webapps/webapps.json
+
+# check adb key when startup
+mkdir -p root/system/adb
+cp files/init.copy_adb_key.rc root/system/etc/init/
+cp files/copy_adb_key root/system/bin/
+chmod +x root/system/bin/copy_adb_key
+cp adbkey.pub root/system/adb/adb_keys
 
 echo "Umount system..."
-umount sys
+umount root
 
 echo "Dump system partition..."
 dd if=${loDev}p16 of=$output/system.img
@@ -65,4 +72,4 @@ losetup -d $loDev
 
 # compress
 echo "Compress image..."
-xz $output/system.img
+xz -T0 $output/system.img

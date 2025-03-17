@@ -52,28 +52,6 @@ Patched boot partition has been replaced the kernel cmdline from **androidboot.s
 sudo dd if=boot.img of=/dev/sda13
 ```
 
-### Place adb key
-
-You can use **adb keygen** to generate a new adb key or using the key from this repo.
-
-```bash
-# mount userdata
-mkdir userdata
-sudo mount /dev/adb54 userdata
-
-# copy adbkey
-sudo cp adbkey.pub userdata/misc/adb/adb_keys
-
-# umount userdata
-sudo umount userdata
-```
-
-If you cannot mount userdata. Maybe you just did "Disable encryption". Format it.
-
-```bash
-sudo mkfs.f2fs /dev/sda54 -f
-```
-
 ### Flash system
 
 Download system.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest) then flash it.
@@ -84,16 +62,22 @@ sudo dd if=system.img of=/dev/sda16
 
 Reboot the device when finished.
 
-### Enable adb
+### Adb
 
 Enable "Settings -> Storage -> USB storage". Then your PC can discovery a adb device.
 
-Use the adb key to connect to it.
+Due to the adbd cannot exchange key. This image contains a pre generated key at **/data/misc/adb/adb_keys**.
+
+You need to use the adb key in this repository to connect to it.
 
 ```bash
-export export ADB_VENDOR_KEYS=$(YOUR_ADBKEY_PATH)
+export export ADB_VENDOR_KEYS=$(REPOSITORY_DIR)/adbkey
 adb shell
 ```
+
+Or you can replace the key by yourself.
+
+System will restore the adb key if **/data/misc/adb/adb_keys** not exist during boot.
 
 ### Sideload apps
 

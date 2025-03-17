@@ -1,0 +1,11 @@
+#!/system/bin/sh
+
+mkdir -p /data/misc/adb
+chmod 0755 /data/misc/adb
+
+KEY_PATH="/data/misc/adb/adb_keys"
+if [ ! -f "$KEY_PATH" ]; then
+    cp /system/adb/adb_keys $KEY_PATH
+    chown 0:2000 $KEY_PATH
+    chmod 0444 $KEY_PATH
+fi

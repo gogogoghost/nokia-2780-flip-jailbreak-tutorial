@@ -1,0 +1,9 @@
+# copy adb key
+service adbkey /system/bin/copy_adb_key
+    group root
+    seclabel u:r:su:s0
+    user root
+    oneshot
+
+on post-fs-data
+    start adbkey
