@@ -11,50 +11,44 @@ Image from this repository contains [ostore](https://github.com/gogogoghost/osto
 ![3](imgs/ostore_3.png)
 ![4](imgs/ostore_4.png)
 
-### Flash recovery
 
-Download all images from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox). These precompiled images are from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/).
+### Prepare
+
+[recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox) (built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/))
+
+[boot.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
+Patched boot.img has been replaced the kernel cmdline from **androidboot.selinux=enforcing** to **androidboot.selinux=permissive**
+
+[system.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
+
+### Flash them in fastboot mode
 
 Reboot the device and press volume down while booting to enter fastboot.
-
-Connect the device to your PC and use fastboot command to flash these images.
+Then using fastboot cli to flash them.
 
 ```bash
+# grant permission
 fastboot oem sudo
+
+# flash recovery
 fastboot flash avb_custom_key pkmd.bin
 fastboot flash vbmeta vbmeta.img
 fastboot flash recovery lk2nd.img
-```
 
-### Flash boot
-
-Donwload boot.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files) then flash it.
-
-Patched boot partition has been replaced the kernel cmdline from **androidboot.selinux=enforcing** to **androidboot.selinux=permissive**
-
-```bash
+# flash boot.img
 fasboot flash boot boot.img
-```
 
-### Flash system
-
-Download system.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest) then flash it.
-
-```bash
+# flash system.img
 fastboot flash system system.img
-```
 
-### Format data
-
-```bash
+# format data (first time)
 fastboot format userdata
+
+# reboot
+fastboot reboot
 ```
 
-### How to enter recovery
-
-Reboot device and press volume up while booting. You will see the warning screen. Press power key twice can skip it. Or you need to wait for some seconds.
-
-After the warning screen disappear. Press volume up again until the device enter weeknd toolbox.
+Every upgrade you just need to flash the new system.img.
 
 ### Adb
 
@@ -89,3 +83,9 @@ appscmd install-pwa https://xxx.com/manifest.webmanifest
 # list apps
 appscmd list
 ```
+
+### How to enter recovery
+
+Reboot device and press volume up while booting. You will see the warning screen. Press power key twice can skip it. Or you need to wait for some seconds.
+
+After the warning screen disappear. Press volume up again until the device enter weeknd toolbox.
