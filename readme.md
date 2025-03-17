@@ -11,7 +11,7 @@ Image from this repository contains [ostore](https://github.com/gogogoghost/osto
 ![3](imgs/ostore_3.png)
 ![4](imgs/ostore_4.png)
 
-### Flash recovery (Once)
+### Flash recovery
 
 Download all images from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox). These precompiled images are from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/).
 
@@ -42,7 +42,7 @@ Select "Disable encryption" and follow the on-screen instructions.
 
 Select "USB storage" then "Whole eMMC". Your PC can access the whole emmc now.
 
-### Flash kernel (Once)
+### Flash kernel
 
 Donwload boot.img from [here](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files) then flash it.
 
@@ -61,6 +61,8 @@ sudo dd if=system.img of=/dev/sda16
 ```
 
 Reboot the device when finished.
+
+Each future update only requires flashing system partition.
 
 ### Adb
 
