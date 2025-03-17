@@ -4,7 +4,7 @@ This tutorial can lead you to jailbreak your nokia 2780 flip. Include sideload a
 
 ### Screenshot
 
-Image from this repository contains [ostore](https://github.com/gogogoghost/ostore) to sideload apps. If you uninstalled it. You can do factory reset (format data) or using [appscmd](#sideload-apps) to reinstall.
+Image from this repository contains [ostore](https://github.com/gogogoghost/ostore) to sideload apps. If you uninstalled it. You can do factory reset (format data) or using [appscmd](#sideload-apps-via-cli) to reinstall.
 
 ![1](imgs/ostore_1.png)
 ![2](imgs/ostore_2.png)
