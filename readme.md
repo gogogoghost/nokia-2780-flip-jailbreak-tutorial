@@ -43,6 +43,7 @@ fastboot flash system system.img
 
 # format data (first time)
 fastboot format userdata
+fastboot format cache
 
 # reboot
 fastboot reboot
