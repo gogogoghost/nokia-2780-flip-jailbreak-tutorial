@@ -36,7 +36,7 @@ fastboot flash vbmeta vbmeta.img
 fastboot flash recovery lk2nd.img
 
 # flash boot.img
-fasboot flash boot boot.img
+fastboot flash boot boot.img
 
 # flash system.img
 fastboot flash system system.img
