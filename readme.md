@@ -76,6 +76,7 @@ Image contains [appscmd](https://github.com/gogogoghost/appscmd) to sideload app
 adb shell
 
 # install a app
+adb push application.zip /data/local/tmp/
 appscmd install /data/local/tmp/application.zip
 
 # install a pwa
