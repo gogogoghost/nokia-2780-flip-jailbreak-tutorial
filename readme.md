@@ -1,16 +1,16 @@
-## Nokia 2780 flip jailbreak tutorial
+## Nokia 2780 Flip jailbreak tutorial
 
 This guide covers recovery, root, ADB, and app sideloading on the Nokia 2780 Flip.
 
 ### Patched system image
 
-The repository provides a patched `system.img`:
+This repository provides a patched `system.img` that:
 
 1. disables SELinux enforcement
-2. includes root, and `su` is available from `adb shell`
+2. includes root, with `su` available from `adb shell`
 3. includes [`ostore`](https://github.com/gogogoghost/ostore-solid)
-4. includes [`appscmd`](#sideload-apps-via-cli) for command line app installation; this is not the official [`appscmd`](https://github.com/kaiostech/appscmd)
-5. ADB enable and disable follow the `USB storage` switch
+4. includes [`appscmd`](#sideload-apps-via-cli) for command-line app installation; this is not the official [`appscmd`](https://github.com/kaiostech/appscmd)
+5. ties ADB enable and disable to the `USB storage` switch
 6. enables the hidden Developer menu entry, including `USB Debugger` and `Remote Debugger`
 
 ### Prepare
@@ -23,7 +23,7 @@ Patched `boot.img` changes the kernel cmdline from `androidboot.selinux=enforcin
 
 [system-patched.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
-### Flash them in fastboot mode
+### Flash in fastboot mode
 
 Reboot the device and hold volume down to enter fastboot, then flash:
 
@@ -54,7 +54,7 @@ For later updates, flashing a new `system-patched.img` is usually enough.
 
 ### Adb
 
-Enable `Settings -> Storage -> USB storage and ADB`. Then your PC should detect an ADB device.
+Enable `Settings -> Storage -> USB storage and ADB`. Your PC should then detect an ADB device.
 
 This image restores a pre-generated key to `/data/misc/adb/adb_keys`.
 
@@ -73,25 +73,25 @@ If `/data/misc/adb/adb_keys` is missing, it will be restored on boot.
 
 - After disabling `USB Debugger` or `Remote Debugger`, the related socket may still remain present, but new connections will fail.
 
-### Sideload apps via cli
+### Sideload apps via CLI
 
 The image includes [appscmd](https://github.com/gogogoghost/appscmd) for sideloading.
 
 ```bash
 adb shell
 
-# install a app
+# install an app
 adb push application.zip /data/local/tmp/
 appscmd install /data/local/tmp/application.zip
 
-# install a pwa
+# install a PWA
 appscmd install-pwa https://xxx.com/manifest.webmanifest
 
 # list apps
 appscmd list
 ```
 
-### How to enter recovery
+### Enter recovery
 
 Reboot and hold volume up while booting. The warning screen will appear.
 
