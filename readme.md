@@ -4,16 +4,14 @@ This guide covers recovery, root, ADB, and app sideloading on the Nokia 2780 Fli
 
 ### Patched system image
 
-The patched `system.img` from this repository:
+The repository provides a patched `system.img`:
 
 1. disables SELinux enforcement
 2. includes root, and `su` is available from `adb shell`
 3. includes [`ostore`](https://github.com/gogogoghost/ostore-solid)
 4. includes [`appscmd`](#sideload-apps-via-cli) for command line app installation; this is not the official [`appscmd`](https://github.com/kaiostech/appscmd)
-5. attaches ADB to `USB storage and ADB`, and requires the ADB key from this repository
+5. ADB enable and disable follow the `USB storage` switch
 6. enables the hidden Developer menu entry, including `USB Debugger` and `Remote Debugger`
-
-If `ostore` was removed, reinstall it with a factory reset or with [`appscmd`](#sideload-apps-via-cli).
 
 ### Prepare
 
@@ -23,7 +21,7 @@ If `ostore` was removed, reinstall it with a factory reset or with [`appscmd`](#
 
 Patched `boot.img` changes the kernel cmdline from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
 
-[system.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
+[system-patched.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
 ### Flash them in fastboot mode
 
@@ -42,7 +40,7 @@ fastboot flash recovery lk2nd.img
 fastboot flash boot boot.img
 
 # flash system.img
-fastboot flash system system.img
+fastboot flash system system-patched.img
 
 # format data (first time)
 fastboot format userdata
@@ -52,7 +50,7 @@ fastboot format cache
 fastboot reboot
 ```
 
-For later updates, flashing a new `system.img` is usually enough.
+For later updates, flashing a new `system-patched.img` is usually enough.
 
 ### Adb
 
