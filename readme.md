@@ -1,30 +1,33 @@
 ## Nokia 2780 flip jailbreak tutorial
 
-This tutorial can lead you to jailbreak your nokia 2780 flip. Include sideload apps and root.
+This guide covers recovery, root, ADB, and app sideloading on the Nokia 2780 Flip.
 
-### Screenshot
+### Patched system image
 
-Image from this repository contains [ostore](https://github.com/gogogoghost/ostore) to sideload apps. If you uninstalled it. You can do factory reset (format data) or using [appscmd](#sideload-apps-via-cli) to reinstall.
+The patched `system.img` from this repository:
 
-![1](imgs/ostore_1.png)
-![2](imgs/ostore_2.png)
-![3](imgs/ostore_3.png)
-![4](imgs/ostore_4.png)
+1. disables SELinux enforcement
+2. includes root, and `su` is available from `adb shell`
+3. includes [`ostore`](https://github.com/gogogoghost/ostore-solid)
+4. includes [`appscmd`](#sideload-apps-via-cli) for command line app installation; this is not the official [`appscmd`](https://github.com/kaiostech/appscmd)
+5. attaches ADB to `USB storage and ADB`, and requires the ADB key from this repository
+6. enables the hidden Developer menu entry, including `USB Debugger` and `Remote Debugger`
 
+If `ostore` was removed, reinstall it with a factory reset or with [`appscmd`](#sideload-apps-via-cli).
 
 ### Prepare
 
 [recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox) (built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/))
 
 [boot.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
-Patched boot.img has been replaced the kernel cmdline from **androidboot.selinux=enforcing** to **androidboot.selinux=permissive**
+
+Patched `boot.img` changes the kernel cmdline from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
 
 [system.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
 ### Flash them in fastboot mode
 
-Reboot the device and press volume down while booting to enter fastboot.
-Then using fastboot cli to flash them.
+Reboot the device and hold volume down to enter fastboot, then flash:
 
 ```bash
 # grant permission
@@ -49,28 +52,32 @@ fastboot format cache
 fastboot reboot
 ```
 
-Every upgrade you just need to flash the new system.img.
+For later updates, flashing a new `system.img` is usually enough.
 
 ### Adb
 
-Enable "Settings -> Storage -> USB storage". Then your PC can discovery a adb device.
+Enable `Settings -> Storage -> USB storage and ADB`. Then your PC should detect an ADB device.
 
-Due to the adbd cannot exchange key. This image contains a pre generated key at **/data/misc/adb/adb_keys**.
+This image restores a pre-generated key to `/data/misc/adb/adb_keys`.
 
-You need to use the adb key in this repository to connect to it.
+Use the key from this repository to connect:
 
 ```bash
-export export ADB_VENDOR_KEYS=$(REPOSITORY_DIR)/adbkey
+export ADB_VENDOR_KEYS=$(REPOSITORY_DIR)/adbkey
 adb shell
 ```
 
-Or you can replace the key by yourself.
+You can replace the key with your own if needed.
 
-System will restore the adb key if **/data/misc/adb/adb_keys** not exist during boot.
+If `/data/misc/adb/adb_keys` is missing, it will be restored on boot.
+
+### Known issues
+
+- After disabling `USB Debugger` or `Remote Debugger`, the related socket may still remain present, but new connections will fail.
 
 ### Sideload apps via cli
 
-Image contains [appscmd](https://github.com/gogogoghost/appscmd) to sideload apps.
+The image includes [appscmd](https://github.com/gogogoghost/appscmd) for sideloading.
 
 ```bash
 adb shell
@@ -88,6 +95,6 @@ appscmd list
 
 ### How to enter recovery
 
-Reboot device and press volume up while booting. You will see the warning screen. Press power key twice can skip it. Or you need to wait for some seconds.
+Reboot and hold volume up while booting. The warning screen will appear.
 
-After the warning screen disappear. Press volume up again until the device enter weeknd toolbox.
+Press power twice to skip the warning, or wait a few seconds. Then press volume up again until the device enters weeknd toolbox.

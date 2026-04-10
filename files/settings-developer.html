@@ -1,0 +1,227 @@
+<element name="developer" extends="section">
+  <template>
+
+    <gaia-header data-href="#root">
+      <h1 slot="text" data-l10n-id="developer-header"></h1>
+    </gaia-header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="developer-tools" id="develope-tools-header"></h2>
+      </header>
+      <ul role="menu">
+        <li role="menuitem" id="remote-debugging">
+          <p data-l10n-id="remote-debugging-usb"></p>
+          <span class="button icon icon-dialog">
+            <select data-name="debugger.remote-mode" data-value-type="string">
+              <option value="disabled" data-l10n-id="debugger-disabled" selected></option>
+              <option value="adb-only" data-l10n-id="debugger-adb-only"></option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools"></option>
+            </select>
+          </span>
+        </li>
+        <li role="menuitem" data-show-name="devtools.remote.wifi.visible" id="dev-tool-wifi">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="devtools.remote.wifi.enabled">
+            <span data-l10n-id="dev-tools-wifi"></span>
+          </label>
+        </li>
+
+        <li role="menuitem" id="dev-tool-dmserver">
+          <a class="menu-item" href="#developer_dmserver">
+            <span data-l10n-id="dmserver-settings-button"></span>
+          </a>
+        </li>
+
+        <li role="menuitem" id="dev-tool-hud">
+          <a class="menu-item" href="#developer_hud">
+            <span data-l10n-id="hud-settings-button"></span>
+          </a>
+        </li>
+        <li role="menuitem" id="dev-tool-psu">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="devtools.qps.enabled">
+            <span data-l10n-id="dev-tools-qps"></span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="graphics" id="graphics-settings-header"></h2>
+      </header>
+      <ul role="menu" id="graphics-settings">
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="debug.paint-flashing.enabled">
+            <span data-l10n-id="paint-flashing"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="apz.overscroll.enabled">
+            <span data-l10n-id="apz-overscroll"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.enable-tiles">
+            <span data-l10n-id="tiling"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.low-precision">
+            <span data-l10n-id="low-precision"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.low-opacity">
+            <span data-l10n-id="low-opacity"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.composer2d.enabled">
+            <span data-l10n-id="hardware-composer"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.draw-tile-borders">
+            <span data-l10n-id="draw-tile-borders"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.draw-borders">
+            <span data-l10n-id="draw-layer-borders"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="layers.dump">
+            <span data-l10n-id="dumps-layers"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="gfx.layerscope.enabled">
+            <span data-l10n-id="dumps-layerscope"></span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="window-management" id="win-mng-settings-header"></h2>
+      </header>
+      <ul role="menu" id="win-mng-settings">
+        <li role="menuitem" class="software-home-button hidden">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="software-button.enabled">
+            <span data-l10n-id="software-home-button"></span>
+          </label>
+        </li>
+        <li role="menuitem" class="homegesture">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="homegesture.enabled">
+            <span data-l10n-id="home-gesture"></span>
+          </label>
+        </li>
+        <li role="menuitem" id="continuoustransition">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="continuous-transition.enabled">
+            <span data-l10n-id="continuous-transition"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="app-transition.enabled">
+            <span data-l10n-id="app-transition"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="app-suspending.enabled">
+            <span data-l10n-id="app-suspending"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="copypaste.enabled">
+            <span data-l10n-id="copypaste"></span>
+          </label>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="debug" id="debug-settings-header"></h2>
+      </header>
+      <ul role="menu" id="debug-settings">
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="debug.log-animations.enabled">
+            <span data-l10n-id="log-animations"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="geolocation.debugging.enabled">
+            <span data-l10n-id="geolocation-debugging-enabled"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="geolocation.debugging.gps-locations-ignored">
+            <span data-l10n-id="geolocation-debugging-gps-locations-ignored"></span>
+          </label>
+        </li>
+        <li role="menuitem" id="wifi-debugging">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="wifi.debugging.enabled">
+            <span data-l10n-id="wifi-debugging"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="bluetooth.debugging.enabled">
+            <span data-l10n-id="bluetooth-debugging"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="nfc.debugging.enabled">
+            <span data-l10n-id="nfc-debugging"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="ril.debugging.enabled">
+            <span data-l10n-id="ril-debugging"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="network.debugging.enabled">
+            <span data-l10n-id="network-debugging"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="network.CaptivePortal.disabled">
+            <span data-l10n-id="network-captive-portal-disabled"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="wfa.certification.enabled">
+            <span data-l10n-id="wfa-certification-test-enabled"></span>
+          </label>
+        </li>
+        <li role="menuitem">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-name="debug.console.enabled">
+            <span data-l10n-id="debug-console-enabled"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+  </template>
+</element>
