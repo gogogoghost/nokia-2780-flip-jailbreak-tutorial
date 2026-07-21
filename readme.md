@@ -1,98 +1,119 @@
-## Nokia 2780 Flip jailbreak tutorial
+# Nokia 2780 Flip jailbreak tutorial
 
-This guide covers recovery, root, ADB, and app sideloading on the Nokia 2780 Flip.
+This repository provides the files and instructions needed to install a patched system image on the Nokia 2780 Flip. The patched image provides recovery, root access, ADB, remote debugging, and application sideloading.
 
-### Patched system image
+## What the patched image includes
 
-This repository provides a patched `system.img` that:
+- SELinux runs in permissive mode.
+- `su` is available from `adb shell`.
+- [OStore](https://github.com/gogogoghost/ostore-solid) is preinstalled for installing and managing KaiOS applications.
+- [`appscmd`](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS `appscmd`](https://github.com/kaiostech/appscmd).
+- The `USB storage and ADB` switch controls whether ADB is available.
+- The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
 
-1. disables SELinux enforcement
-2. includes root, with `su` available from `adb shell`
-3. includes [`ostore`](https://github.com/gogogoghost/ostore-solid)
-4. includes [`appscmd`](#sideload-apps-via-cli) for command-line app installation; this is not the official [`appscmd`](https://github.com/kaiostech/appscmd)
-5. ties ADB enable and disable to the `USB storage` switch
-6. enables the hidden Developer menu entry, including `USB Debugger` and `Remote Debugger`
+## Files to download
 
-### Prepare
+Download these files before starting:
 
-[recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox) (built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/))
+- [Recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox), built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/)
+- [Patched `boot.img`](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
+- [Patched `system-patched.img`](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
-[boot.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
+The patched `boot.img` changes the kernel command line from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
 
-Patched `boot.img` changes the kernel cmdline from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
+## Flash the device
 
-[system-patched.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
-
-### Flash in fastboot mode
-
-Reboot the device and hold volume down to enter fastboot, then flash:
+1. Power off the phone, then hold **Volume Down** while turning it on to enter fastboot mode.
+2. Connect the phone to the computer and run the following commands from the directory containing the downloaded files:
 
 ```bash
-# grant permission
+# Grant permission.
 fastboot oem sudo
 
-# flash recovery
+# Flash recovery.
 fastboot flash avb_custom_key pkmd.bin
 fastboot flash vbmeta vbmeta.img
 fastboot flash recovery lk2nd.img
 
-# flash boot.img
+# Flash the patched boot and system images.
 fastboot flash boot boot.img
-
-# flash system.img
 fastboot flash system system-patched.img
 
-# format data (first time)
+# Required on the first installation only: erase user data and cache.
 fastboot format userdata
 fastboot format cache
 
-# reboot
 fastboot reboot
 ```
 
-For later updates, flashing a new `system-patched.img` is usually enough.
+For later updates, flashing a new `system-patched.img` is usually sufficient. Formatting `userdata` and `cache` is intended for the first installation.
 
-### Adb
+## Use ADB
 
-Enable `Settings -> Storage -> USB storage and ADB`. Your PC should then detect an ADB device.
+On the phone, open **Settings -> Storage -> USB storage and ADB**, then choose **Enabled**. This setting enables both USB storage and ADB; enabling it is the required step for the computer to detect the phone as an ADB device.
 
-This image restores a pre-generated key to `/data/misc/adb/adb_keys`.
+<p align="center">
+  <img src="imgs/adb.webp" alt="USB storage and ADB set to Enabled" width="240">
+</p>
 
-Use the key from this repository to connect:
+The image restores a pre-generated ADB key to `/data/misc/adb/adb_keys`. Use the key from this repository when connecting:
 
 ```bash
-export ADB_VENDOR_KEYS=$(REPOSITORY_DIR)/adbkey
+export ADB_VENDOR_KEYS="$(pwd)/adbkey"
 adb shell
 ```
 
-You can replace the key with your own if needed.
+Replace `adbkey` with your own key when needed. If `/data/misc/adb/adb_keys` is missing, the image restores it at boot.
 
-If `/data/misc/adb/adb_keys` is missing, it will be restored on boot.
+## Debug with Firefox
 
-### Known issues
-
-- After disabling `USB Debugger` or `Remote Debugger`, the related socket may still remain present, but new connections will fail.
-
-### Sideload apps via CLI
-
-The image includes [appscmd](https://github.com/gogogoghost/appscmd) for sideloading.
+1. On the phone, open **Developer -> Debugger** and enable the debugger.
+2. Connect with ADB, then forward the phone's debugger port to the computer:
 
 ```bash
+adb forward tcp:6200 tcp:6200
+```
+
+3. Use Firefox 84 to connect to port `6200` on the computer and debug the device.
+
+<p align="center">
+  <img src="imgs/debugger.webp" alt="Developer menu Debugger option" width="240">
+</p>
+
+## Install apps
+
+### Use OStore on the phone
+
+OStore is installed with the patched image. Open it from the app list to sideload and manage applications directly on the phone, including [OmniJ2ME](https://j2me.jaxy.cc/).
+
+<p align="center">
+  <img src="imgs/ostore.webp" alt="OStore with OmniJ2ME listed" width="240">
+</p>
+
+### Install apps from the command line
+
+Use the included [`appscmd`](https://github.com/gogogoghost/appscmd) when installing from a computer:
+
+```bash
+adb push application.zip /data/local/tmp/
 adb shell
 
-# install an app
-adb push application.zip /data/local/tmp/
+# Install an app package.
 appscmd install /data/local/tmp/application.zip
 
-# install a PWA
+# Install a PWA.
 appscmd install-pwa https://xxx.com/manifest.webmanifest
 
-# list apps
+# List installed apps.
 appscmd list
 ```
 
-### Enter recovery
+## Enter recovery
 
-Reboot and hold volume up while booting. The warning screen will appear.
+1. Reboot the device and hold **Volume Up** while it starts.
+2. At the warning screen, press the power button twice to skip it, or wait a few seconds.
+3. Press **Volume Up** again until the phone enters weeknd toolbox.
 
-Press power twice to skip the warning, or wait a few seconds. Then press volume up again until the device enters weeknd toolbox.
+## Known issue
+
+After disabling **USB Debugger** or **Remote Debugger**, the related socket can remain visible, but new connections will fail.
