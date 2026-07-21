@@ -7,7 +7,7 @@ This repository provides the files and instructions needed to install a patched 
 - SELinux runs in permissive mode.
 - `su` is available from `adb shell`.
 - [OStore](https://github.com/gogogoghost/ostore-solid) is preinstalled for installing and managing KaiOS applications.
-- [`appscmd`](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS `appscmd`](https://github.com/kaiostech/appscmd).
+- [appscmd](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS appscmd](https://github.com/kaiostech/appscmd).
 - The `USB storage and ADB` switch controls whether ADB is available.
 - The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
 
@@ -16,8 +16,8 @@ This repository provides the files and instructions needed to install a patched 
 Download these files before starting:
 
 - [Recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox), built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/)
-- [Patched `boot.img`](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
-- [Patched `system-patched.img`](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
+- [Patched boot.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
+- [Patched system-patched.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
 The patched `boot.img` changes the kernel command line from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
 
@@ -92,7 +92,7 @@ OStore is installed with the patched image. Open it from the app list to sideloa
 
 ### Install apps from the command line
 
-Use the included [`appscmd`](https://github.com/gogogoghost/appscmd) when installing from a computer:
+Use the included [appscmd](https://github.com/gogogoghost/appscmd) when installing from a computer:
 
 ```bash
 adb push application.zip /data/local/tmp/
