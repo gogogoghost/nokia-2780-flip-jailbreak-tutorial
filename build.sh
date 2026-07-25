@@ -6,9 +6,10 @@ download_base_url=${DOWNLOAD_BASE_URL:-}
 compress_output=${COMPRESS_OUTPUT:-}
 
 root_dir="root"
-mount_mode=
-system_offset=
-system_size=
+system_mounted=0
+image_loop_device=
+system_partition_device=
+system_partition_device_created=0
 
 if [ -z "$compress_output" ]; then
     compress_output=1
@@ -168,28 +169,32 @@ PY
 }
 
 cleanup() {
-    if [ "$mount_mode" = "fuse" ]; then
-        fusermount3 -u "$root_dir" 2>/dev/null || true
+    if [ "$system_mounted" = "1" ]; then
+        umount "$root_dir" 2>/dev/null || true
+        system_mounted=0
     fi
 
+    if [ -n "$image_loop_device" ]; then
+        if [ "$system_partition_device_created" = "1" ]; then
+            rm -f "$system_partition_device"
+            system_partition_device_created=0
+        fi
+
+        losetup --detach "$image_loop_device" 2>/dev/null || true
+        image_loop_device=
+        system_partition_device=
+    fi
 }
 
 trap cleanup EXIT
 
-read_system_partition_info() {
-    system_info=$(parted -m -s "emmc.img" unit B print | awk -F: '$1==16 {gsub(/B/, "", $2); gsub(/B/, "", $4); print $2 " " $4}')
-
-    if [ -z "$system_info" ]; then
-        echo "Failed to locate system partition" >&2
-        exit 1
-    fi
-
-    system_offset=${system_info%% *}
-    system_size=${system_info##* }
-}
-
 output="output"
 mkdir -p $output
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This build must run as root to mount the system partition." >&2
+    exit 1
+fi
 
 echo "Download emmc image..."
 download_file emmc.img.xz https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/emmc/emmc.img.xz
@@ -209,18 +214,42 @@ download_file ostore.zip https://github.com/gogogoghost/ostore-solid/releases/do
 echo "Decompress emmc image..."
 xz -dk emmc.img.xz
 
-read_system_partition_info
-
 mkdir -p "$root_dir"
 
-if ! command -v fuse2fs >/dev/null 2>&1; then
-    echo "fuse2fs not found" >&2
+if ! command -v losetup >/dev/null 2>&1 || ! command -v mount >/dev/null 2>&1; then
+    echo "losetup or mount not found" >&2
     exit 1
 fi
 
-echo "Mount system via fuse2fs..."
-fuse2fs -o fakeroot,offset=$system_offset "emmc.img" "$root_dir"
-mount_mode=fuse
+echo "Attach eMMC image and scan its partitions..."
+image_loop_device=$(losetup --find --show --partscan "emmc.img")
+system_partition_device="${image_loop_device}p16"
+
+if [ ! -e "$system_partition_device" ]; then
+    system_partition_name=${system_partition_device##*/}
+    system_partition_numbers=$(cat "/sys/class/block/$system_partition_name/dev" 2>/dev/null || true)
+    system_partition_major=${system_partition_numbers%%:*}
+    system_partition_minor=${system_partition_numbers##*:}
+
+    case "$system_partition_major:$system_partition_minor" in
+        *[!0-9:]*|*:|:*)
+            echo "Failed to read device numbers for system partition 16" >&2
+            exit 1
+            ;;
+    esac
+
+    mknod "$system_partition_device" b "$system_partition_major" "$system_partition_minor"
+    system_partition_device_created=1
+fi
+
+if [ ! -b "$system_partition_device" ]; then
+    echo "System partition 16 was not found on $image_loop_device" >&2
+    exit 1
+fi
+
+echo "Mount system partition..."
+mount "$system_partition_device" "$root_dir"
+system_mounted=1
 
 echo "Copy files..."
 
@@ -280,11 +309,13 @@ set_file_metadata root:root 0644 "$root_dir/system/b2g/omni.ja"
 sync
 
 echo "Umount system..."
-cleanup
-mount_mode=
+umount "$root_dir"
+system_mounted=0
 
 echo "Dump system partition..."
-dd if="emmc.img" of="$output/system-patched.img" bs=4M iflag=skip_bytes,count_bytes skip="$system_offset" count="$system_size" status=progress
+dd if="$system_partition_device" of="$output/system-patched.img" bs=4M status=progress
+
+cleanup
 
 echo "Check system image..."
 e2fsck -fy "$output/system-patched.img" || status=$?
