@@ -102,7 +102,7 @@ adb shell
 appscmd install /data/local/tmp/application.zip
 
 # Install a PWA.
-appscmd install-pwa https://xxx.com/manifest.webmanifest
+appscmd install-pwa https://example.com/manifest.webmanifest
 
 # List installed apps.
 appscmd list
