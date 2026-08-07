@@ -31,14 +31,16 @@ According to [this issue](https://github.com/gogogoghost/nokia-2780-flip-jailbre
 Enter the bootloader and check the info.
 
 This version can continue:
-
+```
 Variant: 23WND000M01
 Bootloader version: 00.2238.20.13
+```
 
 Do not flash if it shows:
-
+```
 Variant: 23WNDOOTP03
 Bootloader version: 00.2350.11.40
+```
 
 ---
 
