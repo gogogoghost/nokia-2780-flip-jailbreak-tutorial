@@ -25,22 +25,14 @@ The patched `boot.img` changes the kernel command line from `androidboot.selinux
 
 ---
 
-# Plesse check your bootloader first !!!
-According to [this issue](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/issues/6). There has a newer bootloader that cannot flash directly. 
+# Plesse check your model first !!!
 
-Enter the bootloader and check the info.
+Before the flashing you have to confirm your model is Nokia 2780 Flip. Because there has some models has similar outlook.
 
-This version can continue:
-```
-Variant: 23WND000M01
-Bootloader version: 00.2238.20.13
-```
+Flashing images on other models will brick your device.
 
-Do not flash if it shows:
-```
-Variant: 23WNDOOTP03
-Bootloader version: 00.2350.11.40
-```
+- Go to Settings -> Device -> Device Information -> Model. It must be `Nokia 2780`
+- Open the device battery compartment and take out the battery. Find Model. It must be `TA-1420`
 
 ---
 
