@@ -20,6 +20,15 @@ stock image on every local test.
   own logic and never load the helpers themselves.
 - `files/` — files that are copied into the image as-is (init rc files,
   JavaScript bridges, developer panel sources).
+- `files/adbd-new.bin` — a source-built patched `adbd` for the Nokia 2780.
+  It is compiled from AOSP `android-10.0.0_r9` (`system/core/adb`) with two
+  changes: `should_drop_privileges()` returns `false` (adbd always keeps
+  root) and `adbd_auth_verify()` always returns true with `auth_required`
+  disabled (any key accepted). It links libadbd's logic statically and the
+  device's system libs (`liblog`, `libcrypto`, `libc++`, ...) dynamically;
+  it does **not** use the device's `libadbd.so`/`libadbd_services.so`.
+  Rebuild it with the NDK r21e toolchain when the AOSP sources change:
+  see the `11-adbd-new.sh` patch comment for the build command.
 - `test.sh` — runs the release workflow locally with act and unpacks the
   resulting image to the project parent directory.
 - `.github/workflows/release.yml` — the GitHub Actions workflow that runs

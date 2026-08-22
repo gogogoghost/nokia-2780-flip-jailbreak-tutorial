@@ -71,14 +71,12 @@ On the phone, open **Settings -> Storage -> USB storage and ADB**, then choose *
   <img src="imgs/adb.webp" alt="USB storage and ADB set to Enabled" width="240">
 </p>
 
-The image restores a pre-generated ADB key to `/data/misc/adb/adb_keys`. Use the key from this repository when connecting:
+The patched image ships a source-built `adbd` that accepts **any** ADB key and runs **as root** directly, so no key setup is needed:
 
 ```bash
-export ADB_VENDOR_KEYS="$(pwd)/adbkey"
 adb shell
+# uid=0(root) — no su, no ADB_VENDOR_KEYS required
 ```
-
-Replace `adbkey` with your own key when needed. If `/data/misc/adb/adb_keys` is missing, the image restores it at boot.
 
 ## Debug with Firefox
 
