@@ -19,9 +19,11 @@ jobs:
       - if: ${{ env.ACT_LOCAL_TEST == '1' }}
         working-directory: ${{ github.workspace }}
         run: bash ./build.sh
+        env:
+          LOCAL_SOURCE_DIR: ${{ env.LOCAL_SOURCE_DIR }}
 
       - if: ${{ env.ACT_LOCAL_TEST != '1' }}
-        run: sudo --preserve-env=ACT_LOCAL_TEST,DOWNLOAD_BASE_URL,COMPRESS_OUTPUT bash build.sh
+        run: sudo --preserve-env=ACT_LOCAL_TEST,DOWNLOAD_BASE_URL,COMPRESS_OUTPUT,LOCAL_SOURCE_DIR bash build.sh
 
       - if: ${{ env.ACT_LOCAL_TEST == '1' }}
         uses: actions/upload-artifact@v4
