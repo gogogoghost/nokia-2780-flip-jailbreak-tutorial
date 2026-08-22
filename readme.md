@@ -78,6 +78,31 @@ adb shell
 # uid=0(root) — no su, no ADB_VENDOR_KEYS required
 ```
 
+### ADB over TCP
+
+`adbd` reads the TCP listening port from the `service.adb.tcp.port` property (falling back to `persist.adb.tcp.port`) at startup. To enable Wi-Fi ADB on a port of your choice:
+
+```bash
+adb shell
+setprop service.adb.tcp.port 5555
+# Toggle the switch: Settings -> Storage -> USB storage and ADB -> off -> on
+```
+
+The switch restart restarts `adbd`, which then listens on the TCP port in addition to USB. On the computer:
+
+```bash
+adb connect 192.168.x.x:5555
+adb shell   # still root, no key setup
+```
+
+The port persists across reboots only when set via `persist.adb.tcp.port`:
+
+```bash
+setprop persist.adb.tcp.port 5555
+```
+
+A USB connection is still required for the initial setup, since the ADB switch lives in Settings.
+
 ## Debug with Firefox
 
 1. On the phone, open **Developer -> Debugger** and enable the debugger.
