@@ -1,0 +1,1 @@
+#define PLATFORM_TOOLS_VERSION "1.0.39"

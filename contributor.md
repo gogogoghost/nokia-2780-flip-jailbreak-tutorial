@@ -27,8 +27,8 @@ stock image on every local test.
   disabled (any key accepted). It links libadbd's logic statically and the
   device's system libs (`liblog`, `libcrypto`, `libc++`, ...) dynamically;
   it does **not** use the device's `libadbd.so`/`libadbd_services.so`.
-  Rebuild it with the NDK r21e toolchain when the AOSP sources change:
-  see the `11-adbd-new.sh` patch comment for the build command.
+  The reproducible build lives in `adbd-build/` — see its `build_adbd.sh`
+  header for prerequisites and usage.
 - `test.sh` — runs the release workflow locally with act and unpacks the
   resulting image to the project parent directory.
 - `.github/workflows/release.yml` — the GitHub Actions workflow that runs

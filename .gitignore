@@ -1,2 +1,4 @@
 .artifacts
 .env.local
+adbd-build/work/
+adbd-build/out/

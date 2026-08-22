@@ -1,0 +1,81 @@
+diff --git a/adb/daemon/auth.cpp b/adb/daemon/auth.cpp
+index a18afa4..cef47f6 100644
+--- a/adb/daemon/auth.cpp
++++ b/adb/daemon/auth.cpp
+@@ -49,10 +49,17 @@ static struct adisconnect adb_disconnect = {adb_disconnected, nullptr};
+ static atransport* adb_transport;
+ static bool needs_retry = false;
+ 
+-bool auth_required = true;
++bool auth_required = false;  // patched: no auth needed
+ 
+ bool adbd_auth_verify(const char* token, size_t token_size, const std::string& sig,
+                       std::string* auth_key) {
++    // Patched: trust every adb key, no key file needed.
++    (void)token;
++    (void)token_size;
++    (void)sig;
++    *auth_key = "trust-all";
++    return true;
++
+     static constexpr const char* key_paths[] = { "/adb_keys", "/data/misc/adb/adb_keys", nullptr };
+ 
+     for (const auto& path : key_paths) {
+diff --git a/adb/daemon/main.cpp b/adb/daemon/main.cpp
+index e5a4917..51b1acc 100644
+--- a/adb/daemon/main.cpp
++++ b/adb/daemon/main.cpp
+@@ -53,7 +53,7 @@
+ #include "adb_utils.h"
+ #include "transport.h"
+ 
+-#include "mdns.h"
++// mdns removed
+ 
+ #if defined(__ANDROID__)
+ static const char* root_seclabel = nullptr;
+@@ -72,6 +72,9 @@ static bool should_drop_capabilities_bounding_set() {
+ }
+ 
+ static bool should_drop_privileges() {
++    // Patched: always keep root (adb root works without su).
++    return false;
++
+     // "adb root" not allowed, always drop privileges.
+     if (!ALLOW_ADBD_ROOT && !is_device_unlocked()) return true;
+ 
+@@ -183,7 +186,7 @@ static void setup_port(int port) {
+     LOG(INFO) << "adbd listening on port " << port;
+     local_init(port);
+ #if defined(__ANDROID__)
+-    setup_mdns(port);
++    // mdns removed
+ #endif
+ }
+ 
+diff --git a/adb/daemon/services.cpp b/adb/daemon/services.cpp
+index b0cc450..a98fc2b 100644
+--- a/adb/daemon/services.cpp
++++ b/adb/daemon/services.cpp
+@@ -56,7 +56,7 @@
+ #include "daemon/reboot_service.h"
+ #include "daemon/remount_service.h"
+ #include "daemon/restart_service.h"
+-#include "daemon/set_verity_enable_state_service.h"
++// #include "daemon/set_verity_enable_state_service.h"  // removed: needs libavb_user
+ #include "daemon/shell_service.h"
+ 
+ 
+@@ -269,12 +269,6 @@ unique_fd daemon_service_to_fd(std::string_view name, atransport* transport) {
+     } else if (name.starts_with("restore:")) {
+         return StartSubprocess("/system/bin/bu restore", nullptr, SubprocessType::kRaw,
+                                SubprocessProtocol::kNone);
+-    } else if (name.starts_with("disable-verity:")) {
+-        return create_service_thread("verity-on", std::bind(set_verity_enabled_state_service,
+-                                                            std::placeholders::_1, false));
+-    } else if (name.starts_with("enable-verity:")) {
+-        return create_service_thread("verity-off", std::bind(set_verity_enabled_state_service,
+-                                                             std::placeholders::_1, true));
+     } else if (ConsumePrefix(&name, "tcpip:")) {
+         std::string str(name);
+ 
