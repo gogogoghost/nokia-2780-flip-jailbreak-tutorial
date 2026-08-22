@@ -127,6 +127,23 @@ appscmd list
 2. At the warning screen, press the power button twice to skip it, or wait a few seconds.
 3. Press **Volume Up** again until the phone enters weeknd toolbox.
 
+## Uninstall built-in apps
+
+The patched image marks all bundled non-core apps as removable (`maps`, `youtube`, `googlesearch`, `kaios-pay`, `kaios-store`, `kaios-weather`, `kaios-news`, `kaios-todo`, `snake`, `kaios-2048`, `kaios-gems`, `kaios-guardians`, `kaios-birdy`, `kaios-whackamole`). Select an app in the launcher and press the **Options** key to uninstall it.
+
+> **Note:** This only takes effect after a fresh install that clears user data (`fastboot format userdata`). If you flashed over an existing system, update the app database on the computer instead (back up `/data/local/webapps/db/apps.sqlite*` first):
+
+```bash
+adb shell su -c 'stop api-daemon'
+adb shell su -c 'cat /data/local/webapps/db/apps.sqlite' > apps.sqlite
+adb shell su -c 'cat /data/local/webapps/db/apps.sqlite-wal' > apps.sqlite-wal
+adb shell su -c 'cat /data/local/webapps/db/apps.sqlite-shm' > apps.sqlite-shm
+sqlite3 apps.sqlite "UPDATE apps SET removable = 1 WHERE name IN ('maps','googlesearch','kaios-news','kaios-pay','kaios-store','kaios-weather','kaios-todo','youtube','kaios-2048','kaios-gems','kaios-guardians','kaios-birdy','kaios-whackamole');"
+adb push apps.sqlite /data/local/tmp/
+adb shell su -c 'cp /data/local/tmp/apps.sqlite /data/local/webapps/db/apps.sqlite; rm -f /data/local/webapps/db/apps.sqlite-wal /data/local/webapps/db/apps.sqlite-shm'
+adb reboot
+```
+
 ## Known issue
 
 After disabling **USB Debugger** or **Remote Debugger**, the related socket can remain visible, but new connections will fail.

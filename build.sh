@@ -272,6 +272,9 @@ mkdir -p "$root_dir/system/b2g/webapps/ostore"
 cp ostore.zip "$root_dir/system/b2g/webapps/ostore/application.zip"
 jq '. += [{"install_time": 1663931969102, "manifest_url": "http://ostore.localhost/manifest.webmanifest","removable": true,"name": "ostore"}]' "$root_dir/system/b2g/webapps/webapps.json" > temp.json && mv temp.json "$root_dir/system/b2g/webapps/webapps.json"
 
+# mark all bundled non-core apps removable
+jq 'map(if .removable == false then .removable = true else . end)' "$root_dir/system/b2g/webapps/webapps.json" > temp.json && mv temp.json "$root_dir/system/b2g/webapps/webapps.json"
+
 # check adb key when startup
 mkdir -p "$root_dir/system/adb"
 cp files/init.copy_adb_key.rc "$root_dir/system/etc/init/"
