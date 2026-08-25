@@ -13,8 +13,7 @@
  *
  * Usage:
  *   adb forward tcp:6200 tcp:6200
- *   bun run index.ts
- *   bun run index.ts --port 5555
+ *   bun run tools/kaios-console.ts
  *
  * Features:
  *   - real-time console events: a resident event loop prints
