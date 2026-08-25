@@ -2,3 +2,5 @@
 .env.local
 adbd-build/work/
 adbd-build/out/
+downloads/
+output/
