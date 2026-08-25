@@ -49,5 +49,12 @@ ok
 1. Connects to `127.0.0.1:6200` (RDP over TCP)
 2. `listProcesses` → parent (b2g chrome) process → `getTarget` → `attach`
 3. `startListeners` for console events, injects `sys` alias
-4. Each command goes through `evaluateJSAsync`; results and
-   `consoleAPICall` events are read from the stream and printed
+4. Each command goes through `evaluateJSAsync`; a resident event loop
+   prints `consoleAPICall` / `pageError` as they arrive (so timers and
+   async callbacks show output live) and routes `evaluationResult` to
+   the pending command
+
+Bun-native APIs: `Bun.connect` (socket), `Bun.file` / `Bun.write`
+(history), `process.env.HOME`. The only node module is `node:readline`
+— Bun has no line-editing API, and readline is the minimal compatible
+way to get history / Tab-completion in a TTY.

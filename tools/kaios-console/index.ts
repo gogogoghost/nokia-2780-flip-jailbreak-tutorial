@@ -6,6 +6,11 @@
  * evaluates JavaScript in the chrome (system app) context, printing
  * results and console output that Firefox 84's front end fails to show.
  *
+ * Uses Bun-native APIs for networking (Bun.connect), files (Bun.file /
+ * Bun.write) and home dir (process.env.HOME). The only node module is
+ * node:readline: Bun has no line-editing API, and readline is the
+ * minimal compatible way to get history/Tab-completion in a TTY.
+ *
  * Usage:
  *   adb forward tcp:6200 tcp:6200
  *   bun run index.ts
@@ -20,19 +25,15 @@
  *   - multiline input for unbalanced brackets
  *   - `sys` alias = system-app window (sys.ExternalScreenManager, ...)
  */
-import { createConnection, Socket } from "node:net";
 import {
   createInterface,
   type Interface as RLInterface,
   type Completer,
 } from "node:readline";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
 
 const HOST = "127.0.0.1";
 const PORT = 6200;
-const HISTORY_FILE = join(homedir(), ".kaios-console.history");
+const HISTORY_FILE = `${process.env.HOME ?? "/root"}/.kaios-console.history`;
 
 // ---------------------------------------------------------------------------
 // RDP packet types
@@ -81,7 +82,7 @@ interface HistoryInterface extends RLInterface {
 }
 
 // ---------------------------------------------------------------------------
-// Minimal RDP client
+// RDP client over Bun.connect
 // ---------------------------------------------------------------------------
 
 class Rdp {
@@ -89,12 +90,16 @@ class Rdp {
   private events: Packet[] = [];
   private requesters: Requester[] = [];
   private eventWaiters: ((p: Packet) => void)[] = [];
+  private sock: Bun.Socket | null = null;
 
-  constructor(private sock: Socket) {
-    sock.on("data", (chunk: Buffer) => {
-      this.buf = Buffer.concat([this.buf, chunk]);
-      this.drainBuffer();
-    });
+  /** Feed raw bytes from the socket into the frame buffer. */
+  feed(chunk: Uint8Array): void {
+    this.buf = Buffer.concat([this.buf, Buffer.from(chunk)]);
+    this.drainBuffer();
+  }
+
+  bind(sock: Bun.Socket): void {
+    this.sock = sock;
   }
 
   private drainBuffer(): void {
@@ -129,11 +134,7 @@ class Rdp {
     }
   }
 
-  /**
-   * Send a request and await its reply packet.  A reply is any packet from
-   * the same actor WITHOUT a `type` field: pushed events always carry one,
-   * replies never do.
-   */
+  /** Send a request and await its reply packet. */
   request(
     to: string,
     type: string,
@@ -153,7 +154,7 @@ class Rdp {
         resolve(p);
       },
     });
-    this.sock.write(frame);
+    this.sock?.write(frame);
     return promise;
   }
 
@@ -222,12 +223,19 @@ function parseTarget(value: unknown): { actor: string; consoleActor: string } {
 // ---------------------------------------------------------------------------
 
 async function connect(): Promise<Ctx> {
-  const sock = createConnection({ host: HOST, port: PORT });
-  await new Promise<void>((resolve, reject) => {
-    sock.once("connect", resolve);
-    sock.once("error", reject);
+  const rdp = new Rdp();
+  const { promise, resolve, reject } = Promise.withResolvers<void>();
+  const sock = await Bun.connect({
+    hostname: HOST,
+    port: PORT,
+    socket: {
+      open: () => resolve(),
+      error: (sock, err) => reject(new Error(String(err))),
+      data: (sock, chunk) => rdp.feed(chunk),
+    },
   });
-  const rdp = new Rdp(sock);
+  await promise;
+  rdp.bind(sock);
   await rdp.nextEvent(3000); // greeting
 
   const procs = await rdp.request("root", "listProcesses");
@@ -309,15 +317,15 @@ const pendingTimers = new Map<string, TimerHandle>();
 
 /** Wait for the evaluationResult event matching rid; resolves undefined on timeout. */
 function waitEval(rid: string, timeoutMs: number): Promise<unknown> {
-	const { promise, resolve } = Promise.withResolvers<unknown>();
-	const timer = setTimeout(() => {
-		pendingEvals.delete(rid);
-		pendingTimers.delete(rid);
-		resolve(undefined);
-	}, timeoutMs);
-	pendingTimers.set(rid, timer);
-	pendingEvals.set(rid, resolve);
-	return promise;
+  const { promise, resolve } = Promise.withResolvers<unknown>();
+  const timer = setTimeout(() => {
+    pendingEvals.delete(rid);
+    pendingTimers.delete(rid);
+    resolve(undefined);
+  }, timeoutMs);
+  pendingTimers.set(rid, timer);
+  pendingEvals.set(rid, resolve);
+  return promise;
 }
 
 function deliverResult(ev: Packet): void {
@@ -501,6 +509,25 @@ function ask(rl: HistoryInterface, prompt: string): Promise<string> {
   return promise;
 }
 
+/** Load persisted history via Bun.file. */
+async function loadHistory(): Promise<string[]> {
+  const file = Bun.file(HISTORY_FILE);
+  if (!(await file.exists())) return [];
+  try {
+    return (await file.text()).split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function saveHistory(rl: HistoryInterface): Promise<void> {
+  try {
+    await Bun.write(HISTORY_FILE, rl.history.slice(-500).join("\n"));
+  } catch {
+    // history is best-effort
+  }
+}
+
 async function main(): Promise<void> {
   console.log(`Connecting to ${HOST}:${PORT} ...`);
   let ctx: Ctx;
@@ -520,22 +547,8 @@ async function main(): Promise<void> {
     output: process.stdout,
     completer: makeCompleter(words),
   }) as HistoryInterface;
-  if (existsSync(HISTORY_FILE)) {
-    try {
-      rl.history = readFileSync(HISTORY_FILE, "utf8").split("\n").filter(Boolean);
-    } catch {
-      // unreadable history file: start empty
-    }
-  }
+  rl.history = await loadHistory();
   console.log("Ready. Type `help` for usage, Ctrl-D to exit.\n");
-
-  const saveHistory = (): void => {
-    try {
-      writeFileSync(HISTORY_FILE, rl.history.slice(-500).join("\n"));
-    } catch {
-      // history is best-effort
-    }
-  };
 
   while (true) {
     const line = (await ask(rl, "js> ")).trim();
@@ -566,7 +579,7 @@ async function main(): Promise<void> {
     }
     await evalAsync(ctx.rdp, ctx.consoleActor, code);
   }
-  saveHistory();
+  await saveHistory(rl);
   rl.close();
   console.log("Bye.");
 }
