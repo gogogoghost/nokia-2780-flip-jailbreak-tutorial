@@ -23,6 +23,9 @@ bun run index.ts
 
 - Evaluates JS in the chrome/system-app context (same target Firefox
   connects to), not just the DOM inspector
+- **Real-time console events**: a resident event loop prints
+  `consoleAPICall` / `pageError` as they arrive, so `setTimeout`
+  callbacks and async code show output without another command
 - `sys` alias = system-app window: `sys.ExternalScreenManager`, ...
 - Command history (up/down arrows), persisted to `~/.kaios-console.history`
 - Tab completion: chrome globals, system-app globals, and members of

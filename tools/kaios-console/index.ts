@@ -12,6 +12,9 @@
  *   bun run index.ts --port 5555
  *
  * Features:
+ *   - real-time console events: a resident event loop prints
+ *     consoleAPICall / pageError as they arrive, so timers and
+ *     async callbacks show up without a follow-up command
  *   - command history (up/down), persisted to ~/.kaios-console.history
  *   - Tab completion of chrome + system-app globals and members
  *   - multiline input for unbalanced brackets
@@ -45,6 +48,7 @@ interface Packet {
   resultID?: string;
   hasException?: boolean;
   exception?: unknown;
+  pageError?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -125,7 +129,11 @@ class Rdp {
     }
   }
 
-  /** Send a request and await its reply packet. */
+  /**
+   * Send a request and await its reply packet.  A reply is any packet from
+   * the same actor WITHOUT a `type` field: pushed events always carry one,
+   * replies never do.
+   */
   request(
     to: string,
     type: string,
@@ -139,9 +147,7 @@ class Rdp {
       reject(new Error(`timeout waiting for ${type} from ${to}`));
     }, timeoutMs);
     this.requesters.push({
-      matches: (p: Packet) =>
-        p.from === to &&
-        ("error" in p || "result" in p || "resultID" in p || !("type" in p)),
+      matches: (p: Packet) => p.from === to && !("type" in p),
       resolve: (p: Packet) => {
         clearTimeout(timer);
         resolve(p);
@@ -262,22 +268,6 @@ const INJECT_SCRIPT = `(() => {
   return JSON.stringify({ sys: sys ? valid(sys) : [], obj });
 })()`;
 
-/** Inject `sys`/`__sys` aliases and pull completion word lists. */
-async function prepare(rdp: Rdp, consoleActor: string): Promise<CompletionWords> {
-  const rid = (await rdp.request(consoleActor, "evaluateJSAsync", { text: INJECT_SCRIPT }))
-    .resultID;
-  const deadline = Date.now() + 6000;
-  let result: unknown;
-  while (Date.now() < deadline) {
-    const ev = await rdp.nextEvent(2000);
-    if (ev !== undefined && ev.resultID === rid) {
-      result = ev.result;
-      break;
-    }
-  }
-  return parseWords(result);
-}
-
 function parseWords(value: unknown): CompletionWords {
   const empty: CompletionWords = { sys: [], obj: {} };
   if (typeof value !== "string") return empty;
@@ -298,49 +288,83 @@ function parseWords(value: unknown): CompletionWords {
   }
 }
 
-function resultText(res: unknown): string | undefined {
-  if (typeof res === "string") return res;
-  if (res === null || typeof res !== "object") return undefined;
-  const r = res as Record<string, unknown>;
-  if (r.type === "undefined" || r.type === "null") return undefined;
-  return undefined;
+/** Inject `sys`/`__sys` aliases and pull completion word lists. */
+async function prepare(rdp: Rdp, consoleActor: string): Promise<CompletionWords> {
+  const rid = (await rdp.request(consoleActor, "evaluateJSAsync", { text: INJECT_SCRIPT }))
+    .resultID;
+  if (rid === undefined) return { sys: [], obj: {} };
+  const result = await waitEval(String(rid), 6000);
+  return parseWords(result);
 }
 
-async function evalAsync(rdp: Rdp, consoleActor: string, text: string): Promise<void> {
-  const reply = await rdp.request(consoleActor, "evaluateJSAsync", { text });
-  const rid = reply.resultID;
-  if (rid === undefined) {
-    console.log("(no result id in reply)");
-    return;
+// ---------------------------------------------------------------------------
+// Resident event loop: prints console output as it arrives, delivers
+// evaluation results to the command that requested them.
+// ---------------------------------------------------------------------------
+
+type TimerHandle = ReturnType<typeof setTimeout>;
+
+const pendingEvals = new Map<string, (ev: Packet) => void>();
+const pendingTimers = new Map<string, TimerHandle>();
+
+/** Wait for the evaluationResult event matching rid; resolves undefined on timeout. */
+function waitEval(rid: string, timeoutMs: number): Promise<unknown> {
+	const { promise, resolve } = Promise.withResolvers<unknown>();
+	const timer = setTimeout(() => {
+		pendingEvals.delete(rid);
+		pendingTimers.delete(rid);
+		resolve(undefined);
+	}, timeoutMs);
+	pendingTimers.set(rid, timer);
+	pendingEvals.set(rid, resolve);
+	return promise;
+}
+
+function deliverResult(ev: Packet): void {
+  const key = String(ev.resultID ?? "");
+  if (key === "") return;
+  const resolve = pendingEvals.get(key);
+  if (resolve === undefined) return;
+  pendingEvals.delete(key);
+  clearTimeout(pendingTimers.get(key));
+  pendingTimers.delete(key);
+  resolve(ev);
+}
+
+function onConsoleEvent(ev: Packet): void {
+  const msg = ev.message as Record<string, unknown> | undefined;
+  const args = msg?.arguments;
+  if (Array.isArray(args) && args.length > 0) {
+    console.log(args.map(fmt).join(" | "));
   }
-  const deadline = Date.now() + 10000;
-  let printed = false;
-  while (Date.now() < deadline) {
-    const ev = await rdp.nextEvent(2000);
+}
+
+function onPageError(ev: Packet): void {
+  const err = ev.pageError as Record<string, unknown> | undefined;
+  const msg = err?.errorMessage;
+  if (typeof msg === "string") {
+    console.log(`[pageError] ${msg}`);
+  }
+}
+
+/** Resident event consumer: run for the lifetime of the session. */
+async function runEventLoop(rdp: Rdp): Promise<void> {
+  while (true) {
+    const ev = await rdp.nextEvent(3000);
     if (ev === undefined) continue;
-    if (ev.type === "consoleAPICall") {
-      const msg = ev.message as Record<string, unknown> | undefined;
-      const args = msg?.arguments;
-      if (Array.isArray(args) && args.length > 0) {
-        console.log(args.map(fmt).join(" | "));
-        printed = true;
-      }
-    } else if (ev.resultID === rid) {
-      if (ev.hasException === true) {
-        console.log(formatError(ev));
-      } else {
-        const text = resultText(ev.result);
-        if (text !== undefined) {
-          if (!printed) console.log(text);
-        } else {
-          console.log(fmt(ev.result).slice(0, 2000));
-        }
-      }
-      return;
+    if (ev.type === "evaluationResult") {
+      deliverResult(ev);
+    } else if (ev.type === "consoleAPICall") {
+      onConsoleEvent(ev);
+    } else if (ev.type === "pageError") {
+      onPageError(ev);
     }
   }
-  console.log("(no result received)");
 }
+
+// ---------------------------------------------------------------------------
+// Formatting
+// ---------------------------------------------------------------------------
 
 function fmt(v: unknown): string {
   if (typeof v === "string") return v;
@@ -371,6 +395,14 @@ function fmt(v: unknown): string {
   return String(v).slice(0, 200);
 }
 
+function resultText(res: unknown): string | undefined {
+  if (typeof res === "string") return res;
+  if (res === null || typeof res !== "object") return undefined;
+  const r = res as Record<string, unknown>;
+  if (r.type === "undefined" || r.type === "null") return undefined;
+  return undefined;
+}
+
 function formatError(ev: Packet): string {
   const exc = (ev.exception ?? {}) as Record<string, unknown>;
   const prev = (exc.preview ?? {}) as Record<string, unknown>;
@@ -378,6 +410,31 @@ function formatError(ev: Packet): string {
   let out = `Error: ${String(msg)}`;
   if (typeof prev.stack === "string") out += `\n${prev.stack}`;
   return out;
+}
+
+async function evalAsync(rdp: Rdp, consoleActor: string, text: string): Promise<void> {
+  const reply = await rdp.request(consoleActor, "evaluateJSAsync", { text });
+  const rid = reply.resultID;
+  if (rid === undefined) {
+    console.log("(no result id in reply)");
+    return;
+  }
+  const ev = await waitEval(String(rid), 10000);
+  if (ev === undefined) {
+    console.log("(no result received)");
+    return;
+  }
+  const pkt = ev as Packet;
+  if (pkt.hasException === true) {
+    console.log(formatError(pkt));
+    return;
+  }
+  const textResult = resultText(pkt.result);
+  if (textResult !== undefined) {
+    console.log(textResult);
+  } else {
+    console.log(fmt(pkt.result).slice(0, 2000));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -456,6 +513,7 @@ async function main(): Promise<void> {
   }
   console.log("Connected. Preparing completion context ...");
   const words = await prepare(ctx.rdp, ctx.consoleActor);
+  void runEventLoop(ctx.rdp); // resident: prints timers/async console output
 
   const rl = createInterface({
     input: process.stdin,
