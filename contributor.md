@@ -90,11 +90,12 @@ It places the daemon in `/system/kaios/remote/MyService/daemon`, the client in
 (`b2g_features.permissions`) to be granted it.
 
 The daemon runs from a copy of the payload under `/data/local/service/api-daemon`.
-The patched `api-daemon.sh` rebuilds that copy - `http_root` (so the JS clients
-come along) and `/system/kaios/remote` - only when the copy is missing (first
-boot, after formatting `userdata`) or when the image ships a newer daemon
-version, so a normal boot does no work. An existing installation picks up newly
-shipped services with `tools/refresh-api-daemon.sh`.
+The patched `api-daemon.sh` compares the remote services shipped in the image
+against that copy on every boot and copies them when they differ, so a new
+service or a new version reaches the device with a plain image flash. The
+payload itself (daemon binary, `http_root`, config) is rebuilt only when the
+copy is missing (first boot, after formatting `userdata`) or when the image
+ships a newer daemon version.
 
 ## Local testing with act
 

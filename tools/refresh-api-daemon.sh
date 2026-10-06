@@ -5,9 +5,9 @@
 # The daemon runs from /data/local/service/api-daemon, which the launcher
 # (/system/bin/api-daemon.sh) rebuilds only when its `init` marker is missing
 # (first boot, userdata wipe) or when the image ships a newer daemon version.
-# After flashing an image over an existing installation that runtime copy is
-# therefore stale, so the remote services shipped in the image (Sideload, ...)
-# would be missing.
+# Remote services are synced on every boot, the rest of the payload (daemon
+# binary, http_root, config) is not: this forces a rebuild without rebooting,
+# which is useful right after flashing an image.
 #
 # Removing the marker makes the launcher rebuild the payload - http_root,
 # remote services, config and the daemon binary - on the next start, which is

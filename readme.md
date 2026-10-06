@@ -67,11 +67,7 @@ fastboot reboot
 
 For later updates, flashing a new `system-patched.img` is usually sufficient. Formatting `userdata` and `cache` is intended for the first installation.
 
-The api-daemon runs from a copy of the image payload under `/data`, which it rebuilds only when that copy is missing (first boot, after formatting `userdata`) or when the image ships a newer daemon version. After an update that keeps `userdata`, refresh that copy once so the remote services shipped in the new image (Sideload, ...) become available:
-
-```sh
-tools/refresh-api-daemon.sh
-```
+The api-daemon runs from a copy of the image payload under `/data`. Remote services shipped in the image (Sideload, ...) are compared against that copy on every boot and synced when they differ, so flashing a new `system-patched.img` is enough to update them. The payload itself (daemon binary, `http_root`, config) is rebuilt only when that copy is missing (first boot, after formatting `userdata`) or when the image ships a newer daemon version — `tools/refresh-api-daemon.sh` forces such a rebuild without rebooting.
 
 ## Use ADB
 
