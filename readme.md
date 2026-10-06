@@ -11,6 +11,7 @@ This repository provides the files and instructions needed to install a patched 
 - **Built-in non-core apps are removable** — bundled games and web services can be uninstalled from the launcher.
 - [OStore](https://github.com/gogogoghost/ostore-solid) is preinstalled for installing and managing KaiOS applications.
 - [appscmd](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS appscmd](https://github.com/kaiostech/appscmd).
+- [Sideload](services/Sideload/README.md) is a permission gated app management service: applications holding the `sideload` permission can install, uninstall, list and read installed applications through the api-daemon session. It replaces the unauthenticated `appscmd` HTTP daemon, which is no longer started.
 - The `USB storage and ADB` switch controls whether ADB is available.
 - The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
 
@@ -126,6 +127,8 @@ adb forward tcp:6200 tcp:6200
 ### Use OStore on the phone
 
 OStore is installed with the patched image. Open it from the app list to sideload and manage applications directly on the phone, including [OmniJ2ME](https://j2me.jaxy.cc/).
+
+OStore uses the [Sideload](services/Sideload/README.md) service when it is available (applications need the `sideload` permission, which the preinstalled OStore declares) and falls back to the legacy `appscmd` HTTP daemon otherwise, so the same build works on systems without the Sideload patch.
 
 <p align="center">
   <img src="imgs/ostore.webp" alt="OStore with OmniJ2ME listed" width="240">

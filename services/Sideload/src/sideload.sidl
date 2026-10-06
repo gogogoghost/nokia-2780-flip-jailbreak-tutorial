@@ -1,0 +1,39 @@
+// Sideload — KaiOS extension service.
+//
+// Permission gated app management for KaiOS 3.1. It replaces the legacy
+// appscmd HTTP daemon (127.0.0.1:5431, no authentication): only applications
+// whose token carries the `sideload` permission can create the service.
+//
+// The implementation forwards app management to the api-daemon apps service
+// (the internal UDS appscmd itself uses) and reads installed app files through
+// the api-daemon vhost, so no HTTP endpoint is exposed to applications.
+
+#[rust:not-tracked]
+interface SideloadFactory {
+    // Installed applications; same payload as `appscmd list`.
+    fn list() -> json, str
+
+    // Install a packaged application from a path on the device.
+    fn install(package_path: str) -> str, str
+
+    // Install a PWA from its manifest URL.
+    fn install_pwa(manifest_url: str) -> str, str
+
+    // Uninstall an application by manifest URL.
+    fn uninstall(manifest_url: str) -> str, str
+
+    // Raw file of an installed application, addressed by its origin
+    // (e.g. "http://ostore.localhost"). Replaces the HTTP /proxy endpoint.
+    fn get_app_file(origin: str, path: str) -> binary, str
+
+    // Parsed manifest of an installed application, addressed by its manifest
+    // URL (e.g. "http://ostore.localhost/manifest.webmanifest", or
+    // "http://cached.localhost/maps/manifest.webmanifest" for cached PWAs).
+    fn get_app_manifest(manifest_url: str) -> json, str
+
+    // Whether the apps service backend is reachable.
+    fn ready() -> bool
+}
+
+#[permission=sideload]
+service Sideload: SideloadFactory

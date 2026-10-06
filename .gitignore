@@ -4,3 +4,5 @@ adbd-build/work/
 adbd-build/out/
 downloads/
 output/
+services/.cache/
+services/*/client/node_modules/
