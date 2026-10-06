@@ -87,9 +87,14 @@ install_remote_service(
 It places the daemon in `/system/kaios/remote/MyService/daemon`, the client in
 `/system/kaios/http_root/api/v1/myservice/service.js.gz` and registers the
 `myservice` permission, which applications must declare in their manifest
-(`b2g_features.permissions`) to be granted it. The patched `api-daemon.sh`
-copies every service found in the image into `/data/local/service/api-daemon`
-on boot, so a new service needs no change there.
+(`b2g_features.permissions`) to be granted it.
+
+The daemon runs from a copy of the payload under `/data/local/service/api-daemon`.
+The patched `api-daemon.sh` rebuilds that copy - `http_root` (so the JS clients
+come along) and `/system/kaios/remote` - only when the copy is missing (first
+boot, after formatting `userdata`) or when the image ships a newer daemon
+version, so a normal boot does no work. An existing installation picks up newly
+shipped services with `tools/refresh-api-daemon.sh`.
 
 ## Local testing with act
 

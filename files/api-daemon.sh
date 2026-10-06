@@ -3,9 +3,10 @@
 # api-daemon launcher, patched by the jailbreak tutorial:
 #   - the original script only copied the /system/kaios payload when the daemon
 #     version changed, and `cp -rf` nested http_root on a re-copy
-#   - every remote service shipped in the image (/system/kaios/remote and
-#     /system/kaios/http_root/api/v1) is synced into the runtime directory on
-#     every boot
+#   - the payload copy also brings the remote services shipped in the image
+#     (/system/kaios/remote), which is what restores them after a userdata
+#     wipe; an existing installation is refreshed with
+#     tools/refresh-api-daemon.sh, so no work happens on a normal boot
 
 newver=`cat /system/kaios/api-daemon.ver`
 oldver=`cat /data/local/service/updater/installed/api-daemon-*.toml 2>/dev/null | grep version | cut -f 2 -d '"'`
@@ -34,27 +35,14 @@ if [ ! -f ${API_DAEMON_DIR}/init -o "$newer" = "1" ]; then
   mkdir -p ${API_DAEMON_DIR}
   rm -rf ${API_DAEMON_DIR}/http_root
   cp -rf /system/kaios/http_root ${API_DAEMON_DIR}
+  if [ -d /system/kaios/remote ]; then
+    rm -rf ${API_DAEMON_DIR}/remote
+    cp -rf /system/kaios/remote ${API_DAEMON_DIR}
+  fi
   cp -f /system/kaios/api-daemon ${API_DAEMON_DIR}
   cp -f /system/kaios/config.toml ${API_DAEMON_DIR}
   cp -f /system/kaios/kota.json ${API_DAEMON_DIR}
   touch ${API_DAEMON_DIR}/init
 fi
-
-# System image additions (remote services and their JS clients) are refreshed
-# on every boot so that flashing a new system image is enough to update them.
-for service_dir in /system/kaios/remote/*/; do
-  [ -d "$service_dir" ] || continue
-  name=`basename "$service_dir"`
-  mkdir -p ${API_DAEMON_DIR}/remote/${name}
-  cp -f ${service_dir}daemon ${API_DAEMON_DIR}/remote/${name}/
-  chmod 755 ${API_DAEMON_DIR}/remote/${name}/daemon
-done
-
-for client_dir in /system/kaios/http_root/api/v1/*/; do
-  [ -f "${client_dir}service.js.gz" ] || continue
-  name=`basename "$client_dir"`
-  mkdir -p ${API_DAEMON_DIR}/http_root/api/v1/${name}
-  cp -f ${client_dir}service.js.gz ${API_DAEMON_DIR}/http_root/api/v1/${name}/
-done
 
 exec ${API_DAEMON_DIR}/api-daemon ${API_DAEMON_DIR}/config.toml

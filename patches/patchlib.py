@@ -300,9 +300,9 @@ def install_remote_service(name, daemon, client, permission=None,
 
     The child daemon is placed in /system/kaios/remote/<Name>/daemon and the JS
     client in /system/kaios/http_root/api/v1/<lower case>/service.js.gz. The
-    patched /system/bin/api-daemon.sh copies every service found there into
-    /data/local/service/api-daemon on boot, so adding a service needs no change
-    to that script.
+    patched /system/bin/api-daemon.sh copies /system/kaios/remote together with
+    the rest of the payload when it rebuilds the runtime copy under /data, so
+    adding a service needs no change to that script.
 
     Applications can only create the service when they hold the permission
     registered here (defaults to the lower case service name).
