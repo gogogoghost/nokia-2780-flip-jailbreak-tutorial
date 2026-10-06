@@ -99,7 +99,7 @@ echo "Download appscmd..."
 download_file appscmd https://github.com/gogogoghost/appscmd/releases/download/0.1.0/appscmd
 
 echo "Download ostore..."
-download_file ostore.zip https://github.com/gogogoghost/ostore-solid/releases/download/1.1.0/ostore.zip
+download_file ostore.zip https://github.com/gogogoghost/ostore-solid/releases/download/1.2.1/ostore.zip
 
 echo "Decompress emmc image..."
 xz -dkf "$downloads_dir/emmc.img.xz"
