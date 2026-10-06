@@ -146,12 +146,12 @@ mount "$system_partition_device" "$root_dir"
 system_mounted=1
 
 echo "Apply patches..."
-for patch_script in "$PROJECT_DIR"/patches/[0-9]*.sh; do
+for patch_script in "$PROJECT_DIR"/patches/[0-9]*.py; do
     if [ -f "$patch_script" ]; then
         echo "  $(basename "$patch_script")"
-        # Run lib.sh and the patch body in one shell so the helpers
-        # are available to the patch.
-        sh -c 'set -e; . "$0"; . "$1"' "$PROJECT_DIR/patches/lib.sh" "$patch_script"
+        # Patches import the shared helpers from patches/patchlib.py, which
+        # Python finds next to the script being run.
+        python3 "$patch_script"
     fi
 done
 

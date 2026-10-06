@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
 # Replace adbd with the source-built patched binary (root + trust-all keys).
 #
@@ -8,5 +8,7 @@
 #   patch daemon/auth.cpp: adbd_auth_verify() -> return true; auth_required = false
 #   compile daemon/*.cpp + adb core with armv7a-linux-androideabi29-clang++,
 #   link against device /system/lib/*.so (see /tmp/adbd-build/build_adbd.sh)
-cp "$PROJECT_DIR/files/adbd-new.bin" "$SYSTEM_ROOT/system/bin/adbd"
-set_file_metadata root:2000 0755 "$SYSTEM_ROOT/system/bin/adbd"
+
+from patchlib import FILES, install_binary
+
+install_binary(FILES / "adbd-new.bin", "/system/bin/adbd")

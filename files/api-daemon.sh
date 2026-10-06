@@ -3,8 +3,9 @@
 # api-daemon launcher, patched by the jailbreak tutorial:
 #   - the original script only copied the /system/kaios payload when the daemon
 #     version changed, and `cp -rf` nested http_root on a re-copy
-#   - Sideload (and any other remote service shipped in the image) is synced into
-#     the runtime directory on every boot
+#   - every remote service shipped in the image (/system/kaios/remote and
+#     /system/kaios/http_root/api/v1) is synced into the runtime directory on
+#     every boot
 
 newver=`cat /system/kaios/api-daemon.ver`
 oldver=`cat /data/local/service/updater/installed/api-daemon-*.toml 2>/dev/null | grep version | cut -f 2 -d '"'`
@@ -41,9 +42,19 @@ fi
 
 # System image additions (remote services and their JS clients) are refreshed
 # on every boot so that flashing a new system image is enough to update them.
-mkdir -p ${API_DAEMON_DIR}/http_root/api/v1/sideload ${API_DAEMON_DIR}/remote/Sideload
-cp -f /system/kaios/http_root/api/v1/sideload/service.js.gz ${API_DAEMON_DIR}/http_root/api/v1/sideload/
-cp -f /system/kaios/remote/Sideload/daemon ${API_DAEMON_DIR}/remote/Sideload/
-chmod 755 ${API_DAEMON_DIR}/remote/Sideload/daemon
+for service_dir in /system/kaios/remote/*/; do
+  [ -d "$service_dir" ] || continue
+  name=`basename "$service_dir"`
+  mkdir -p ${API_DAEMON_DIR}/remote/${name}
+  cp -f ${service_dir}daemon ${API_DAEMON_DIR}/remote/${name}/
+  chmod 755 ${API_DAEMON_DIR}/remote/${name}/daemon
+done
+
+for client_dir in /system/kaios/http_root/api/v1/*/; do
+  [ -f "${client_dir}service.js.gz" ] || continue
+  name=`basename "$client_dir"`
+  mkdir -p ${API_DAEMON_DIR}/http_root/api/v1/${name}
+  cp -f ${client_dir}service.js.gz ${API_DAEMON_DIR}/http_root/api/v1/${name}/
+done
 
 exec ${API_DAEMON_DIR}/api-daemon ${API_DAEMON_DIR}/config.toml

@@ -11,13 +11,14 @@ stock image on every local test.
   the eMMC image with `losetup`, mounts its system partition at `root/`,
   runs every script in `patches/` in numeric order, then dumps the patched
   partition to `output/system-patched.img` and runs `e2fsck` on it.
-- `patches/` — one script per feature. Each script modifies exactly one
-  thing inside the mounted system partition, so individual patches can be
-  reviewed, disabled (delete or rename the file), or extended without
-  touching the others.
-- `patches/lib.sh` — shared helpers used by patch scripts. `build.sh`
-  sources it before running each patch, so patch files contain only their
-  own logic and never load the helpers themselves.
+- `patches/` — one script per feature, named `NN-name.py`. Each script
+  modifies exactly one thing inside the mounted system partition, so
+  individual patches can be reviewed, disabled (delete or rename the file),
+  or extended without touching the others.
+- `patches/patchlib.py` — shared helpers used by patch scripts: file
+  placement, JSON edits, `application.zip`/`omni.ja` edits, application
+  registration and remote service installation. Its docstring is the
+  reference; patches import what they need.
 - `files/` — files that are copied into the image as-is (init rc files,
   JavaScript bridges, developer panel sources).
 - `files/adbd-new.bin` — a source-built patched `adbd` for the Nokia 2780.
@@ -36,7 +37,7 @@ stock image on every local test.
 
 ### Environment variables
 
-`build.sh` exports the following variables and injects the helpers for every patch script, so patches never load anything themselves:
+`build.sh` exports the following variables before running each patch:
 
 | Variable | Meaning |
 |---|---|
@@ -44,24 +45,51 @@ stock image on every local test.
 | `PROJECT_DIR` | repository root |
 | `FILES_DIR` | repository `files/` directory |
 | `DOWNLOAD_DIR` | `downloads/` directory (init, su, appscmd, ostore.zip) |
-| `PATCH_LIB` | path to `patches/lib.sh` (already sourced before the patch body runs) |
 
-Before running each patch, `build.sh` sources `patches/lib.sh`, which
-defines the helpers used by patches:
+`patches/patchlib.py` reads them at import time and exposes them as the
+`SYSTEM_ROOT`, `PROJECT_DIR`, `FILES` and `DOWNLOADS` paths. The helpers are
+grouped by intent:
 
-- `set_file_metadata <owner:group> <mode> <path>` — set ownership and mode inside `$SYSTEM_ROOT`.
-- `json_update <file> <jq-filter>` — atomically rewrite a JSON file with jq.
-- `patch_omni_file <archive> <entry> <replacement>` — replace one entry inside `omni.ja`.
+| Helper | Purpose |
+|---|---|
+| `install_file`, `install_binary`, `install_init_service`, `install_pref` | place a host file in the image with the right owner and mode |
+| `set_metadata`, `image_path`, `read_image_file` | metadata and paths inside the image |
+| `json_edit`, `json_merge`, `json_append` | edit JSON files in the image |
+| `zip_read`, `zip_replace`, `zip_add`, `zip_edit`, `zip_json` | edit `application.zip` and `omni.ja` members |
+| `register_permission` | register a permission in Gecko's `PermissionsTable` |
+| `install_webapp`, `mark_webapps_removable` | preinstall applications in `webapps.json` |
+| `install_remote_service`, `install_api_daemon_launcher` | install an api-daemon remote service (child daemon, JS client, permission) |
 
 ### Adding a patch
 
-1. Create `patches/NN-name.sh` with a number higher than the existing ones.
-2. Use `$SYSTEM_ROOT`, `$FILES_DIR`, `$DOWNLOAD_DIR` and the helpers above directly — no sourcing, no environment setup.
-3. Write only to `$SYSTEM_ROOT`.
+1. Create `patches/NN-name.py` with a number higher than the existing ones.
+2. Import what you need, e.g. `from patchlib import FILES, install_file`.
+3. Write only inside the image: `install_file()` and friends take image paths
+   such as `/system/xbin/su` and create the directories they live in.
 4. Set ownership and modes on every file you add — the stock image has
-   strict metadata (e.g. binaries `root:2000 0755`, configs `root:root
-   0644`). Use `set_file_metadata` from `lib.sh`.
+   strict metadata (e.g. binaries `root:2000 0755`, configs `root:root 0644`).
 5. Run `sh test.sh` to verify the full build.
+
+### Adding a remote service
+
+An api-daemon remote service (child daemon plus JS client) is one call:
+
+```python
+from patchlib import FILES, install_remote_service
+
+install_remote_service(
+    "MyService",
+    daemon=FILES / "myservice-daemon",
+    client=FILES / "myservice-service.js.gz",
+)
+```
+
+It places the daemon in `/system/kaios/remote/MyService/daemon`, the client in
+`/system/kaios/http_root/api/v1/myservice/service.js.gz` and registers the
+`myservice` permission, which applications must declare in their manifest
+(`b2g_features.permissions`) to be granted it. The patched `api-daemon.sh`
+copies every service found in the image into `/data/local/service/api-daemon`
+on boot, so a new service needs no change there.
 
 ## Local testing with act
 
