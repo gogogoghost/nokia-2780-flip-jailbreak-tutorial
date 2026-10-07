@@ -46,19 +46,6 @@ export SYSTEM_ROOT="$PROJECT_DIR/$root_dir"
 # Patch scripts run from the repository root.
 cd "$PROJECT_DIR"
 
-download_file() {
-    file_name=$1
-    default_url=$2
-
-    if [ -n "$local_source_dir" ] && [ -f "$local_source_dir/$file_name" ]; then
-        cp "$local_source_dir/$file_name" "$downloads_dir/$file_name"
-    elif [ -n "$download_base_url" ]; then
-        wget "$download_base_url/$file_name" -O "$downloads_dir/$file_name"
-    else
-        wget "$default_url" -O "$downloads_dir/$file_name"
-    fi
-}
-
 cleanup() {
     if [ "$system_mounted" = "1" ]; then
         umount "$root_dir" 2>/dev/null || true
@@ -86,20 +73,9 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-echo "Download emmc image..."
-download_file emmc.img.xz https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/emmc/emmc.img.xz
-
-echo "Download init..."
-download_file init https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/patched-files/init
-
-echo "Download su..."
-download_file su https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/download/su/su
-
-echo "Download appscmd..."
-download_file appscmd https://github.com/gogogoghost/appscmd/releases/download/0.1.0/appscmd
-
-echo "Download ostore..."
-download_file ostore.zip https://github.com/gogogoghost/ostore-solid/releases/download/1.2.1/ostore.zip
+echo "Download build files..."
+LOCAL_SOURCE_DIR="$local_source_dir" DOWNLOAD_BASE_URL="$download_base_url" \
+    sh "$PROJECT_DIR/tools/download-resources.sh" "$downloads_dir"
 
 echo "Decompress emmc image..."
 xz -dkf "$downloads_dir/emmc.img.xz"

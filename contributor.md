@@ -116,11 +116,14 @@ releases changes (a new OStore version, for example) - a stale mirror silently
 makes local builds differ from CI:
 
 ```sh
-tools/update-local-source.sh
+tools/download-resources.sh "$LOCAL_SOURCE_DIR" --download
 ```
 
-It reads the download URLs straight out of `build.sh` and updates only the
-files that changed.
+`tools/download-resources.sh <target-dir> [--download]` is the one place the
+download URLs live: `build.sh` calls it with `downloads/` and uses the mirror
+when it is available, and `--download` ignores the mirror and fetches from the
+release URLs, which is what refreshing the cache needs. Files the server
+reports as unchanged are not fetched again.
 
 ### Setup
 
