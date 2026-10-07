@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# Build the patched system image.
+# Build the patched images.
 #
-# This script only prepares the environment: it downloads the stock eMMC
-# image and the patched binaries, attaches and mounts the system
-# partition, then runs every patch script in patches/ in numeric order.
-# Each patch script modifies exactly one feature of the system partition;
-# see patches/lib.sh for the shared helpers.
+# This script prepares the environment (downloads, loop device, mount), runs
+# every patch in images/system/ in numeric order against the mounted system
+# partition, dumps it to output/system-patched.img, and builds output/dtbo.img
+# from images/dtbo/. Each patch modifies exactly one feature;
+# images/system/patchlib.py has the shared helpers.
 #
 # Exported environment available to every patch script:
 #   SYSTEM_ROOT    mounted system partition (all patches write here)
@@ -39,7 +39,8 @@ fi
 
 # Paths exported for the patch scripts.
 export PROJECT_DIR="$(pwd)"
-export FILES_DIR="$PROJECT_DIR/files"
+export FILES_DIR="$PROJECT_DIR/images/system/payload"
+export SERVICES_DIR="$PROJECT_DIR/services"
 export DOWNLOAD_DIR="$PROJECT_DIR/$downloads_dir"
 export SYSTEM_ROOT="$PROJECT_DIR/$root_dir"
 
@@ -122,11 +123,11 @@ mount "$system_partition_device" "$root_dir"
 system_mounted=1
 
 echo "Apply patches..."
-for patch_script in "$PROJECT_DIR"/patches/[0-9]*.py; do
+for patch_script in "$PROJECT_DIR"/images/system/[0-9]*.py; do
     if [ -f "$patch_script" ]; then
         echo "  $(basename "$patch_script")"
-        # Patches import the shared helpers from patches/patchlib.py, which
-        # Python finds next to the script being run.
+        # Patches import the shared helpers from images/system/patchlib.py,
+        # which Python finds next to the script being run.
         python3 "$patch_script"
     fi
 done
@@ -146,7 +147,7 @@ if [ -n "$local_source_dir" ] && [ -f "$local_source_dir/emmc.img" ]; then
 else
     emmc_image="$downloads_dir/emmc.img"
 fi
-python3 "$PROJECT_DIR/tools/make-dtbo.py" "$emmc_image" "$output_dir/dtbo.img"
+python3 "$PROJECT_DIR/images/dtbo/debounce.py" "$emmc_image" "$output_dir/dtbo.img"
 
 cleanup
 

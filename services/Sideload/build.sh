@@ -2,9 +2,12 @@
 
 # Build the Sideload remote service.
 #
-# Produces (into $OUTPUT_DIR, default <repo>/files):
-#   sideload-daemon          child daemon for /system/kaios/remote/Sideload/daemon
-#   sideload-service.js.gz   JS client for /system/kaios/http_root/api/v1/sideload/
+# Produces (into $OUTPUT_DIR, default services/Sideload/dist):
+#   daemon           child daemon for /system/kaios/remote/Sideload/daemon
+#   service.js.gz    JS client for /system/kaios/http_root/api/v1/sideload/
+#
+# The artifacts are committed so the image build needs no Rust toolchain; the
+# patch that installs them reads them from this directory.
 #
 # The service depends on the api-daemon crates, its vendored third party crates
 # and its workspace patches, so it is built inside a pinned api-daemon checkout
@@ -15,7 +18,7 @@
 #   RUST_TOOLCHAIN      Rust toolchain (default 1.62.0)
 #   API_DAEMON_REPO     api-daemon repository (default upstream)
 #   API_DAEMON_COMMIT   pinned commit to build against
-#   OUTPUT_DIR          artifact directory (default <repo>/files)
+#   OUTPUT_DIR          artifact directory (default services/Sideload/dist)
 #   SKIP_CLIENT         set to 1 to skip the JS client bundle
 
 set -e
@@ -24,7 +27,7 @@ repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 service_dir=$repo_dir/services/Sideload
 cache_dir=$repo_dir/services/.cache
 api_daemon_dir=$cache_dir/api-daemon
-output_dir=${OUTPUT_DIR:-$repo_dir/files}
+output_dir=${OUTPUT_DIR:-$repo_dir/services/Sideload/dist}
 
 android_ndk=${ANDROID_NDK:-$HOME/Android/Sdk/ndk/r21e}
 rust_toolchain=${RUST_TOOLCHAIN:-1.62.0}
@@ -98,8 +101,25 @@ echo "Building sideload-daemon ..."
 )
 
 mkdir -p "$output_dir"
-cp "$api_daemon_dir/target/armv7-linux-androideabi/release/sideload-daemon" "$output_dir/sideload-daemon"
-"$ndk_strip" "$output_dir/sideload-daemon"
-echo "  -> $output_dir/sideload-daemon"
+cp "$api_daemon_dir/target/armv7-linux-androideabi/release/sideload-daemon" "$output_dir/daemon"
+"$ndk_strip" "$output_dir/daemon"
+echo "  -> $output_dir/daemon"
+
+if [ "${SKIP_CLIENT:-0}" != "1" ]; then
+    echo "Building the JS client ..."
+    # The bundle input is generated/sideload_service.js, which the child daemon's
+    # build.rs writes next to the sources inside the api-daemon checkout, so the
+    # client is bundled there rather than in the repository copy.
+    client_dir="$api_daemon_dir/services/Sideload/client"
+    if [ ! -d "$client_dir/node_modules" ]; then
+        echo "  client/node_modules is missing: run 'npm install' in $service_dir/client" >&2
+        exit 1
+    fi
+    (cd "$client_dir" && node build.mjs)
+    # -n keeps the gzip header free of a timestamp, so the artifact only
+    # changes when the bundle does.
+    gzip -9n -c "$client_dir/dist/service.js" > "$output_dir/service.js.gz"
+    echo "  -> $output_dir/service.js.gz"
+fi
 
 echo "Done."

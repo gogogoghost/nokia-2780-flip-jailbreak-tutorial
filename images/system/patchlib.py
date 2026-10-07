@@ -5,7 +5,8 @@ runs them in numeric order with these environment variables exported:
 
     SYSTEM_ROOT   mounted system partition (every write goes here)
     PROJECT_DIR   repository root
-    FILES_DIR     repository files/ directory
+    FILES_DIR     payload files copied into the image (images/system/payload)
+    SERVICES_DIR  remote service sources and their built artifacts (services/)
     DOWNLOAD_DIR  downloaded binaries (init, su, appscmd, ostore.zip)
 
 A patch is a short list of intent level calls:
@@ -56,8 +57,9 @@ import zipfile
 from pathlib import Path
 
 SYSTEM_ROOT = Path(os.environ.get("SYSTEM_ROOT", ""))
-PROJECT_DIR = Path(os.environ.get("PROJECT_DIR", Path(__file__).resolve().parent.parent))
-FILES = Path(os.environ.get("FILES_DIR", PROJECT_DIR / "files"))
+PROJECT_DIR = Path(os.environ.get("PROJECT_DIR", Path(__file__).resolve().parents[2]))
+FILES = Path(os.environ.get("FILES_DIR", PROJECT_DIR / "images/system/payload"))
+SERVICES = Path(os.environ.get("SERVICES_DIR", PROJECT_DIR / "services"))
 DOWNLOADS = Path(os.environ.get("DOWNLOAD_DIR", PROJECT_DIR / "downloads"))
 
 if not os.environ.get("SYSTEM_ROOT") or not SYSTEM_ROOT.is_dir():

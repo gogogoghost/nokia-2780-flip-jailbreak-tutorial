@@ -8,20 +8,31 @@ stock image on every local test.
 
 - `build.sh` — the build entry point. Prepares the environment: downloads
   the stock eMMC image and the patched binaries into `downloads/`, attaches
-  the eMMC image with `losetup`, mounts its system partition at `root/`,
-  runs every script in `patches/` in numeric order, then dumps the patched
-  partition to `output/system-patched.img` and runs `e2fsck` on it.
-- `patches/` — one script per feature, named `NN-name.py`. Each script
-  modifies exactly one thing inside the mounted system partition, so
-  individual patches can be reviewed, disabled (delete or rename the file),
-  or extended without touching the others.
-- `patches/patchlib.py` — shared helpers used by patch scripts: file
-  placement, JSON edits, `application.zip`/`omni.ja` edits, application
-  registration and remote service installation. Its docstring is the
-  reference; patches import what they need.
-- `files/` — files that are copied into the image as-is (init rc files,
-  JavaScript bridges, developer panel sources).
-- `files/adbd-new.bin` — a source-built patched `adbd` for the Nokia 2780.
+  the eMMC image with `losetup`, mounts its system partition at `root/`, runs
+  every patch in `images/system/` in numeric order, dumps the patched
+  partition to `output/system-patched.img`, builds `output/dtbo.img` and runs
+  `e2fsck` on the result.
+- `images/` — everything that produces a flashable image; see
+  `images/README.md`.
+  - `images/system/` — one patch per feature, named `NN-name.py`, each
+    modifying exactly one thing inside the mounted system partition, so
+    patches can be reviewed, disabled (delete or rename the file) or extended
+    without touching the others.
+  - `images/system/patchlib.py` — shared helpers used by those patches: file
+    placement, JSON edits, `application.zip`/`omni.ja` edits, application
+    registration and remote service installation. Its docstring is the
+    reference; patches import what they need.
+  - `images/system/payload/` — files copied into the image as-is (init rc
+    files, JavaScript bridges, developer panel sources, `adbd-new.bin`).
+  - `images/dtbo/` — builds `dtbo.img` from the stock eMMC dump (keypad
+    debounce).
+- `services/` — one self-contained directory per api-daemon remote service:
+  sources, build script and the committed build artifacts in `dist/`; see
+  `services/README.md`.
+- `tools/` — host-side helpers: `download-resources.sh` (the single place the
+  release URLs live), `refresh-api-daemon.sh` and `kaios-console.ts`.
+- `images/system/payload/adbd-new.bin` — a source-built patched `adbd` for the
+  Nokia 2780.
   It is compiled from AOSP `android-10.0.0_r9` (`system/core/adb`) with two
   changes: `should_drop_privileges()` returns `false` (adbd always keeps
   root) and `adbd_auth_verify()` always returns true with `auth_required`
@@ -43,7 +54,8 @@ stock image on every local test.
 |---|---|
 | `SYSTEM_ROOT` | mounted system partition; all patches write here |
 | `PROJECT_DIR` | repository root |
-| `FILES_DIR` | repository `files/` directory |
+| `FILES_DIR` | payload files copied into the image (`images/system/payload`) |
+| `SERVICES_DIR` | remote service sources and built artifacts (`services/`) |
 | `DOWNLOAD_DIR` | `downloads/` directory (init, su, appscmd, ostore.zip) |
 
 `patches/patchlib.py` reads them at import time and exposes them as the
@@ -62,7 +74,7 @@ grouped by intent:
 
 ### Adding a patch
 
-1. Create `patches/NN-name.py` with a number higher than the existing ones.
+1. Create `images/system/NN-name.py` with a number higher than the existing ones.
 2. Import what you need, e.g. `from patchlib import FILES, install_file`.
 3. Write only inside the image: `install_file()` and friends take image paths
    such as `/system/xbin/su` and create the directories they live in.
@@ -84,7 +96,9 @@ install_remote_service(
 )
 ```
 
-It places the daemon in `/system/kaios/remote/MyService/daemon`, the client in
+The service's built artifacts live in `services/MyService/dist/` (committed, so
+the image build needs no toolchain); the patch installs them. It places the
+daemon in `/system/kaios/remote/MyService/daemon`, the client in
 `/system/kaios/http_root/api/v1/myservice/service.js.gz` and registers the
 `myservice` permission, which applications must declare in their manifest
 (`b2g_features.permissions`) to be granted it.

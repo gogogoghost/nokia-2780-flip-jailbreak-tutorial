@@ -10,7 +10,11 @@ services/<ServiceName>/          # directory name MUST equal the SIDL service na
     src/service.rs               # implementation
     daemon/                      # child daemon crate, spawned by api-daemon
     client/                      # JS client bundle build (esbuild)
-    build.sh                     # build child daemon + JS client
+    build.sh                     # builds both artifacts into dist/
+    dist/daemon                  # committed: installed as
+                                 #   /system/kaios/remote/<ServiceName>/daemon
+    dist/service.js.gz           # committed: installed as
+                                 #   /system/kaios/http_root/api/v1/<name>/service.js.gz
 ```
 
 ## How remote services work
@@ -36,7 +40,7 @@ Hard rules (all verified on device):
 The service crates depend on the api-daemon sources (`common`, `codegen`,
 vendored crates and workspace patches), so they are built **inside a pinned
 api-daemon checkout**, which `build.sh` materializes under
-`services/.cache/api-daemon`. Build artifacts are committed to `files/` so the
+`services/.cache/api-daemon`. Build artifacts are committed to `dist/` so the
 image build does not need a Rust/NDK toolchain.
 
 ```sh
@@ -50,5 +54,5 @@ ANDROID_NDK=$HOME/Android/Sdk/ndk/r21e services/Sideload/build.sh
 - `/system/kaios/remote/<ServiceName>/daemon` — child daemon
 - `/system/kaios/http_root/api/v1/<name>/service.js.gz` — JS client bundle
 
-and `files/api-daemon.sh` (the patched boot script) copies them into the
+and `images/system/payload/api-daemon.sh` (the patched boot script) copies them into the
 runtime directory `/data/local/service/api-daemon/` on every boot.

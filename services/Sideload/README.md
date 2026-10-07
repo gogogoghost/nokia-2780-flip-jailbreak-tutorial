@@ -42,7 +42,9 @@ src/service.rs        service implementation (permission checks + backends)
 src/backend.rs        apps UDS and vhost clients
 daemon/               child daemon crate, spawned by api-daemon
 client/               esbuild bundling of the generated JS client
-build.sh              build child daemon + JS client into <repo>/files
+build.sh              builds both artifacts into dist/
+dist/daemon           child daemon (committed)
+dist/service.js.gz    JS client (committed)
 ```
 
 ## Build
@@ -59,15 +61,15 @@ ANDROID_NDK=$HOME/Android/Sdk/ndk/r21e services/Sideload/build.sh
 
 Artifacts (committed, so the image build needs no Rust toolchain):
 
-- `files/sideload-daemon` — child daemon
-- `files/sideload-service.js.gz` — JS client bundle
+- `dist/daemon` — child daemon
+- `dist/service.js.gz` — JS client bundle
 
 ## Deployment
 
 `patches/12-sideload.sh` installs the child daemon and the JS client into
 `/system/kaios`, registers the `sideload` permission in Gecko's
 `PermissionsTable` (granted to packaged and core applications that declare it),
-and installs the patched `files/api-daemon.sh`, which copies both into
+and installs the patched `images/system/payload/api-daemon.sh`, which copies both into
 `/data/local/service/api-daemon/` on every boot.
 
 ## Client usage

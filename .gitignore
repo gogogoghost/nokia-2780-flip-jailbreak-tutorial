@@ -6,4 +6,5 @@ downloads/
 output/
 services/.cache/
 services/*/client/node_modules/
+services/*/client/dist/
 __pycache__/

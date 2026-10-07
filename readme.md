@@ -16,7 +16,7 @@ This repository provides the files and instructions needed to install a patched 
 - The `USB storage and ADB` switch controls whether ADB is available.
 - The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
 
-The system image is built by `build.sh`, which prepares the environment (downloads, mount) and then applies every script in `patches/` in numeric order. Each patch script modifies exactly one feature, so individual patches can be reviewed, disabled, or extended easily.
+The system image is built by `build.sh`, which prepares the environment (downloads, mount) and then applies every patch in `images/system/` in numeric order (it also builds the patched `dtbo.img`). Each patch script modifies exactly one feature, so individual patches can be reviewed, disabled, or extended easily.
 
 ## Files to download
 
