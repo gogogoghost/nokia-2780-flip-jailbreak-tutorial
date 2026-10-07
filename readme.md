@@ -11,7 +11,7 @@ This repository provides the files and instructions needed to install a patched 
 - **Built-in non-core apps are removable** — bundled games and web services can be uninstalled from the launcher.
 - [OStore](https://github.com/gogogoghost/ostore-solid) is preinstalled for installing and managing KaiOS applications.
 - [appscmd](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS appscmd](https://github.com/kaiostech/appscmd).
-- **Keypad debounce is raised** — the device tree sets `debounce-delay-ms = 10`, which is below the contact chatter this keypad produces (a single press was measured adding a spurious 10.4 ms press). The patched `dtbo` (shipped as `dtbo.img`) raises it to 30 ms.
+- **Keypad debounce is raised** — the device tree sets `debounce-delay-ms = 10`, which is below the contact chatter this keypad produces. The patched `dtbo` (shipped as `dtbo.img`) raises it to 30 ms.
 - [Sideload](services/Sideload/README.md) is a permission gated app management service: applications holding the `sideload` permission can install, uninstall, list and read installed applications through the api-daemon session. It replaces the unauthenticated `appscmd` HTTP daemon, which is no longer started.
 - The `USB storage and ADB` switch controls whether ADB is available.
 - The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
