@@ -164,6 +164,14 @@ system_mounted=0
 echo "Dump system partition..."
 dd if="$system_partition_device" of="$output_dir/system-patched.img" bs=4M status=progress
 
+echo "Build dtbo image..."
+if [ -n "$local_source_dir" ] && [ -f "$local_source_dir/emmc.img" ]; then
+    emmc_image="$local_source_dir/emmc.img"
+else
+    emmc_image="$downloads_dir/emmc.img"
+fi
+python3 "$PROJECT_DIR/tools/make-dtbo.py" "$emmc_image" "$output_dir/dtbo.img"
+
 cleanup
 
 echo "Check system image..."

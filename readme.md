@@ -11,6 +11,7 @@ This repository provides the files and instructions needed to install a patched 
 - **Built-in non-core apps are removable** — bundled games and web services can be uninstalled from the launcher.
 - [OStore](https://github.com/gogogoghost/ostore-solid) is preinstalled for installing and managing KaiOS applications.
 - [appscmd](#install-apps-from-the-command-line) is included for command-line application installation. This is not the official [KaiOS appscmd](https://github.com/kaiostech/appscmd).
+- **Keypad debounce is raised** — the device tree sets `debounce-delay-ms = 10`, which is below the contact chatter this keypad produces (a single press was measured adding a spurious 10.4 ms press). The patched `dtbo` (shipped as `dtbo.img`) raises it to 30 ms.
 - [Sideload](services/Sideload/README.md) is a permission gated app management service: applications holding the `sideload` permission can install, uninstall, list and read installed applications through the api-daemon session. It replaces the unauthenticated `appscmd` HTTP daemon, which is no longer started.
 - The `USB storage and ADB` switch controls whether ADB is available.
 - The hidden **Developer** menu is enabled, including **USB Debugger** and **Remote Debugger**.
@@ -23,7 +24,7 @@ Download these files before starting:
 
 - [Recovery images](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/weeknd-toolbox), built from [weeknd-toolbox](https://git.abscue.de/affe_null/weeknd-toolbox/)
 - [Patched boot.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/tag/patched-files)
-- [Patched system-patched.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
+- [Patched system-patched.img and dtbo.img](https://github.com/gogogoghost/nokia-2780-flip-jailbreak-tutorial/releases/latest)
 
 The patched `boot.img` changes the kernel command line from `androidboot.selinux=enforcing` to `androidboot.selinux=permissive`.
 
@@ -57,6 +58,9 @@ fastboot flash recovery lk2nd.img
 # Flash the patched boot and system images.
 fastboot flash boot boot.img
 fastboot flash system system-patched.img
+
+# Flash the patched device tree overlay (keypad debounce).
+fastboot flash dtbo dtbo.img
 
 # Required on the first installation only: erase user data and cache.
 fastboot format userdata

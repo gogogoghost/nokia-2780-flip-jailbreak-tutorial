@@ -40,4 +40,4 @@ fi
 
 mkdir -p "$output_dir"
 rm -f "$output_dir/system-patched.img"
-unzip -j -o "$artifact_zip" 'system-patched.img' -d "$output_dir"
+unzip -j -o "$artifact_zip" 'system-patched.img' 'dtbo.img' -d "$output_dir"

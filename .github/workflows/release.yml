@@ -34,4 +34,4 @@ jobs:
       - if: ${{ env.ACT_LOCAL_TEST != '1' }}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "output/*.xz"
+          artifacts: "output/*.xz,output/dtbo.img"
