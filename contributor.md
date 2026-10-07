@@ -111,6 +111,17 @@ binaries from GitHub releases on every run. To avoid this, point
 mounts it read-only into the act container and `build.sh` copies from it
 instead of downloading.
 
+The mirror is a cache of those downloads. Refresh it whenever one of the
+releases changes (a new OStore version, for example) - a stale mirror silently
+makes local builds differ from CI:
+
+```sh
+tools/update-local-source.sh
+```
+
+It reads the download URLs straight out of `build.sh` and updates only the
+files that changed.
+
 ### Setup
 
 1. Copy `.env.example` to `.env.local`:
