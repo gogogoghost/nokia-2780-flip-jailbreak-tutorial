@@ -70,7 +70,7 @@ grouped by intent:
 | `zip_read`, `zip_replace`, `zip_add`, `zip_edit`, `zip_json` | edit `application.zip` and `omni.ja` members |
 | `register_permission` | register a permission in Gecko's `PermissionsTable` |
 | `install_webapp`, `mark_webapps_removable` | preinstall applications in `webapps.json` |
-| `install_remote_service`, `install_api_daemon_launcher` | install an api-daemon remote service (child daemon, JS client, permission) |
+| `install_remote_service`, `install_api_daemon_launcher` | install an api-daemon remote service (child daemon and JS client; the permission is registered separately) |
 
 ### Adding a patch
 
@@ -84,23 +84,27 @@ grouped by intent:
 
 ### Adding a remote service
 
-An api-daemon remote service (child daemon plus JS client) is one call:
+A service lives in `services/<Name>/` (see `services/README.md`) and is installed
+by one block in `images/system/12-api-daemon-services.py`:
 
 ```python
-from patchlib import FILES, install_remote_service
-
 install_remote_service(
     "MyService",
-    daemon=FILES / "myservice-daemon",
-    client=FILES / "myservice-service.js.gz",
+    daemon=SERVICES / "MyService/dist/daemon",
+    client=SERVICES / "MyService/dist/service.js.gz",
 )
+# Packaged (signed) and core applications that declare `myservice` may create it.
+register_permission("myservice")
 ```
 
-The service's built artifacts live in `services/MyService/dist/` (committed, so
-the image build needs no toolchain); the patch installs them. It places the
-daemon in `/system/kaios/remote/MyService/daemon`, the client in
-`/system/kaios/http_root/api/v1/myservice/service.js.gz` and registers the
-`myservice` permission, which applications must declare in their manifest
+The artifacts are built by `services/MyService/build.sh` into
+`services/MyService/dist/` and committed, so the image build needs no toolchain.
+`install_remote_service()` places the daemon in
+`/system/kaios/remote/MyService/daemon` and the client in
+`/system/kaios/http_root/api/v1/myservice/service.js.gz`; `register_permission()`
+is a separate call on purpose — which applications may create a service is a
+security decision, so the policy stays visible next to the service it gates.
+Applications must declare the permission in their manifest
 (`b2g_features.permissions`) to be granted it.
 
 The daemon runs from a copy of the payload under `/data/local/service/api-daemon`.

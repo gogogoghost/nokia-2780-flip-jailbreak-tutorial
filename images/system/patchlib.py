@@ -296,8 +296,7 @@ def install_api_daemon_launcher(src):
     return install_file(src, "/system/bin/api-daemon.sh", 0o755, "root:2000")
 
 
-def install_remote_service(name, daemon, client, permission=None,
-                           pwa="DENY_ACTION", signed="ALLOW_ACTION", core="ALLOW_ACTION"):
+def install_remote_service(name, daemon, client):
     """Install an api-daemon remote service into the image.
 
     The child daemon is placed in /system/kaios/remote/<Name>/daemon and the JS
@@ -306,9 +305,10 @@ def install_remote_service(name, daemon, client, permission=None,
     under /data on every boot and syncs them when they differ, so adding a
     service needs no change to that script.
 
-    Applications can only create the service when they hold the permission
-    registered here (defaults to the lower case service name).
+    The permission that gates the service is registered with a separate
+    register_permission() call on purpose: which applications may create a
+    service is a security decision, so the policy belongs at the call site next
+    to the service it gates rather than hidden in a default.
     """
     install_file(daemon, "/system/kaios/remote/%s/daemon" % name, 0o755, "root:root")
     install_file(client, "/system/kaios/http_root/api/v1/%s/service.js.gz" % name.lower(), 0o644, "root:root")
-    register_permission(permission or name.lower(), pwa, signed, core)
