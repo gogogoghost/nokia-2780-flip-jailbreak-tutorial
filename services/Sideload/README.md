@@ -66,11 +66,13 @@ Artifacts (committed, so the image build needs no Rust toolchain):
 
 ## Deployment
 
-`patches/12-sideload.sh` installs the child daemon and the JS client into
-`/system/kaios`, registers the `sideload` permission in Gecko's
-`PermissionsTable` (granted to packaged and core applications that declare it),
-and installs the patched `images/system/payload/api-daemon.sh`, which copies both into
-`/data/local/service/api-daemon/` on every boot.
+`images/system/12-api-daemon-services.py` installs the child daemon and the JS
+client into `/system/kaios`, registers the `sideload` permission in Gecko's
+`PermissionsTable` (granted to packaged and core applications that declare it)
+and installs the patched launcher `images/system/payload/api-daemon.sh`. On boot
+that launcher compares every service found in the image against the api-daemon
+runtime copy under `/data/local/service/api-daemon/` and copies the ones that
+differ, so flashing a new image is enough to update them.
 
 ## Client usage
 
