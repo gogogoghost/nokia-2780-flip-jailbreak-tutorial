@@ -30,7 +30,10 @@ stock image on every local test.
   sources, build script and the committed build artifacts in `dist/`; see
   `services/README.md`.
 - `tools/` — host-side helpers: `download-resources.sh` (the single place the
-  release URLs live), `refresh-api-daemon.sh` and `kaios-console.ts`.
+  release URLs live), `refresh-api-daemon.sh`, `kaios-console.ts`, and
+  `kaios-screenrec.sh` (drive the `kcap` recorder from the host; see
+  `services/Screencapture/README.md`). `kcap` lives with the service that owns
+  it: `services/Screencapture/`.
 - `images/system/payload/adbd-new.bin` — a source-built patched `adbd` for the
   Nokia 2780.
   It is compiled from AOSP `android-10.0.0_r9` (`system/core/adb`) with two
@@ -180,6 +183,16 @@ reports as unchanged are not fetched again.
   your files.
 - Compressing a plain `emmc.img` as `emmc.img.xz` once (about 4 minutes
   with `xz -0 -T0`) saves ~3.2 GB of download per test run.
+
+## Screen recording
+
+Screen capture belongs to the `Screencapture` remote service: `kcap` is its
+recorder, built from `services/Screencapture/kcap.c`, and
+`tools/kaios-screenrec.sh` drives it from the host.
+
+How it reaches the display buffers, its command line, and the host helper are
+documented in
+[`services/Screencapture/README.md`](services/Screencapture/README.md).
 
 ## CI behavior
 

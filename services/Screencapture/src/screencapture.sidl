@@ -1,0 +1,45 @@
+// screencapture — KaiOS extension service.
+//
+// Permission gated screen recording for KaiOS 3.1. Only applications whose
+// token carries the `screencapture` permission can create the service.
+//
+// The capture itself is done by the `kcap` helper (see kcap.c): it reads the
+// display buffers straight out of the HWC HAL and encodes H.264 on the device
+// with the Venus video processor. This service is only a wrapper — it starts
+// kcap as root through su, follows its state files and hands back the finished
+// MP4.
+//
+// A recording belongs to the daemon, not to the calling page. The child daemon
+// is a separate process that api-daemon keeps alive and reuses, so a recording
+// keeps running when the application that started it is closed or killed.
+
+#[rust:not-tracked]
+interface ScreencaptureFactory {
+    // Start recording at `bitrate` bits per second. A recording that is already
+    // running is left alone, so this is safe to call twice.
+    fn record(bitrate: int) -> bool, str
+
+    // Stop the current recording and wait for the file to be finished. The
+    // recording is still available from get_blob() afterwards.
+    fn stop() -> bool, str
+
+    // Whether a recording is currently running.
+    fn is_recording() -> bool
+
+    // Seconds recorded: the live value while recording, the final length once
+    // stopped, and 0 before anything has been recorded.
+    //
+    // Whole seconds, not `float`: the shared client the device ships
+    // (/system/kaios/http_root/api/v1/shared/core.js) implements no f32/f64 in
+    // its decoder, so a `float` return decodes into `decoder.f64 is not a
+    // function` on this firmware. `int` maps to i64, which it does support.
+    fn elapsed() -> int
+
+    // The finished recording as an MP4. Fails while a recording is still
+    // running, or when there is nothing to hand back. The file is deleted once
+    // it has been read.
+    fn get_blob() -> binary, str
+}
+
+#[permission=screencapture]
+service Screencapture: ScreencaptureFactory
