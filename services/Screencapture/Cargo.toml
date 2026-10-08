@@ -1,0 +1,18 @@
+[package]
+name = "screencapture_service"
+version = "0.1.0"
+edition = "2018"
+license = "Apache-2.0"
+description = "screencapture: permission gated screen recording service for KaiOS"
+
+# NOTE: this crate is built inside the api-daemon source tree
+# (services/screencapture), which is why the common/codegen paths point there.
+# See ../build.sh.
+
+[dependencies]
+common = { path = "../../common" }
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+
+[build-dependencies]
+common = { path = "../../common" }

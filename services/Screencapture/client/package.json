@@ -1,0 +1,13 @@
+{
+  "name": "screencapture-client",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Bundles the generated screencapture JS client into dist/service.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

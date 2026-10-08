@@ -17,6 +17,10 @@ services/<ServiceName>/          # directory name MUST equal the SIDL service na
                                  #   /system/kaios/http_root/api/v1/<name>/service.js.gz
 ```
 
+A service may ship further committed artifacts in `dist/`; Screencapture adds
+`dist/kcap`, the recorder its daemon runs. The install patch decides where those
+go.
+
 ## How remote services work
 
 `api-daemon` scans `/data/local/service/api-daemon/remote/` at startup. Every
@@ -45,7 +49,13 @@ image build does not need a Rust/NDK toolchain.
 
 ```sh
 ANDROID_NDK=$HOME/Android/Sdk/ndk/r21e services/Sideload/build.sh
+ANDROID_NDK=$HOME/Android/Sdk/ndk/r21e services/Screencapture/build.sh
 ```
+
+`common` declares `#[link(name = "selinux")]` and is also built for the host,
+for the build scripts, which needs a host libselinux. `build.sh` supplies a
+link-only stub when the distribution has none, so no root and no
+`libselinux-devel` are required.
 
 ## Deployment
 
